@@ -495,7 +495,7 @@ class CLIPLoss(nn.Module):
         logit_scale: float,
         output_dict: bool = False,
     ) -> torch.FloatTensor:
-        # Get the logits for the image and spectrum features
+        # Get the logits for the lamost lrs and gaia xp features
         logits_per_gaia_xp, logits_per_lamost_lrs = self.get_logits(
             gaia_xp_features, lamost_lrs_features, logit_scale
         )

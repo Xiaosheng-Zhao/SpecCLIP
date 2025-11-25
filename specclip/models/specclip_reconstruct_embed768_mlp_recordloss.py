@@ -31,10 +31,6 @@ class SpecClipModel_reconstruct_embed768_mlp_recordloss(L.LightningModule):
         # add parameter to control the loss: if add the reconstruction loss and predict loss
         add_reconstruct_loss: bool = True,
         add_predict_loss: bool = True,
-        #image_decoder: nn.Module = None,
-        #spectrum_decoder: nn.Module = None,
-        #gaia_xp_cross_decoder: nn.Module = None,
-        #lamost_lrs_cross_decoder: nn.Module = None,
         
     ):
         """
@@ -216,13 +212,7 @@ class SpecClipModel_reconstruct_embed768_mlp_recordloss(L.LightningModule):
         # Add another loss to reconstruct the Gaia XP and LAMOST LRS spectra, respectively: from their features
         if self.hparams.add_reconstruct_loss:
             gaia_xp_reconstruct = self.gaia_xp_decoder(gaia_xp_features)
-            #print ('image features shape', gaia_xp_features.shape)
-            #print ('image reconstruct shape', image_reconstruct.shape)
-            #print ('im shape', im.shape)
-            #print ('sp shape', sp.shape)
-            #print ('spectrum features shape', lamost_lrs_features.shape)
             lamost_lrs_reconstruct = self.lamost_lrs_decoder(lamost_lrs_features)
-            #print ('spectrum reconstruct shape', spectrum_reconstruct.shape)
             loss_reconstruct = self.reconstruct_loss(gaia_spectra[:,:,0], gaia_xp_reconstruct) + self.reconstruct_loss(lamost_spectra_normalized[:,:,0], lamost_lrs_reconstruct)
 
         # Additional loss to predict one spectrum type from the other's features (cross-prediction)
