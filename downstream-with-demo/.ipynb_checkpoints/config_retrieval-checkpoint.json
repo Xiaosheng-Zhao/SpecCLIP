@@ -1,0 +1,6 @@
+{
+  "model_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/clip_model_predrecon_mlp.ckpt",
+  "image_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/xp_encoder_mlp.ckpt",
+  "spectrum_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/lrs_encoder.ckpt",
+  "h5_data_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/test_data/gaia_lamost_test_only.h5"
+}

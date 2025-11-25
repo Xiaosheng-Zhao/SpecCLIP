@@ -1,0 +1,74 @@
+seed_everything: 42
+trainer:
+  default_root_dir: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs"
+  enable_checkpointing: true
+  gradient_clip_val: 1.
+  max_steps: 122500 #500000 #5000 #500_000
+  precision: 32 #null
+  limit_val_batches: 100
+  accelerator: 'gpu' #new
+  devices: 2 #new
+  strategy: 'ddp'
+  num_nodes: 1
+  logger:
+    class_path: CustomWandbLogger
+    init_args:
+      project: "astroclip-spectrum"
+      entity: "{WANDB_ENTITY_NAME}"
+      save_dir: ${trainer.default_root_dir}
+  callbacks:
+    - class_path: LearningRateMonitor
+      init_args:
+        logging_interval: "step"
+    - class_path: ModelCheckpoint
+      init_args:
+        save_last: True #link
+        save_top_k: 3
+        monitor: "val_epoch_loss"
+        mode: "min"
+        filename: "{epoch}-{val_loss:.4f}"
+    - class_path: CustomEarlyStopping
+      init_args:
+        monitor: "val_epoch_loss"
+        min_delta: 1e-4
+        patience: 10
+        verbose: False
+        mode: "min"
+        check_finite: True
+    - class_path: EpochLossCallback
+      init_args:
+        log_train_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs/training_loss_gassp_control20_std.txt"
+        log_val_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs/validation_loss_gassp_control20_std.txt"
+model:
+  class_path: SpecFormerControl20_wstd
+  init_args:
+    input_dim: 21
+    embed_dim: 768
+    num_layers: 6 #6
+    num_heads: 6 #6
+    max_len: 150 #800
+    dropout: 0.
+    mask_num_chunks: 6 #new
+    mask_chunk_width: 10 #new
+    slice_section_length: 20 #new
+    slice_overlap: 10 #new
+data:
+  class_path: SpectrumDataloader
+  init_args:
+    path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/shared/desi_edr_split.h5"
+    batch_size: 32
+    num_workers: 4
+optimizer:
+  class_path: torch.optim.adamw.AdamW
+  init_args:
+    lr: 1e-5 #1e-5
+    weight_decay: 1e-1 #1e-1
+    betas:
+      - 0.9
+      - 0.95
+lr_scheduler:
+  class_path: CosineAnnealingWithWarmupLR
+  init_args:
+    T_max: ${trainer.max_steps}
+    T_warmup: 1220 # 2000 #200 #2000
+    eta_min: ${eval:'${optimizer.init_args.lr}//100'}

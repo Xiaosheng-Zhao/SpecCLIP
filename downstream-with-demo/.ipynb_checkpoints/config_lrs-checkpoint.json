@@ -1,0 +1,15 @@
+{
+  "image_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/xp_encoder.ckpt",
+  "spectrum_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/lrs_encoder.ckpt",
+  "transformer_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/clip_model.ckpt",
+  "sbi_model_path_chemical": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/lrs/sbi/chemical.pkl",
+  "sbi_model_path_seismic": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/lrs/sbi/seis.pkl",
+  "sbi_model_path_rv": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/lrs/sbi/rv.pt",
+  "sbi_model_path_dpi1": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/lrs/sbi/DPi1.pt",
+  "sbi_model_path_teff": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/lrs/sbi/teff.pt",
+  "sbi_model_path_logg": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/lrs/sbi/logg.pt",
+  "sbi_model_path_feh": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/lrs/sbi/FeH.pt",
+  "mlp_model_path_ebprp": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/lrs/mlp/ebprp.pt",
+  "mlp_model_path_ebprp_clip": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/clip/ebprp_clip.pt",
+  "stats_dir": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/stats"
+}

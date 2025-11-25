@@ -1,0 +1,15 @@
+{
+  "image_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/xp_encoder.ckpt",
+  "spectrum_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/lrs_encoder.ckpt",
+  "transformer_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/encoders/clip_model.ckpt",
+  "mlp_model_path_afe": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/xp/mlp/afe.pt",
+  "mlp_model_path_afe_clip": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/clip/afe_clip.pt",
+  "mlp_model_path_cfe": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/xp/mlp/cfe.pt",
+  "mlp_model_path_nfe": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/xp/mlp/nfe.pt",
+  "mlp_model_path_teff": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/xp/mlp/teff.pt",
+  "mlp_model_path_logg": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/xp/mlp/logg.pt",
+  "mlp_model_path_feh": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/xp/mlp/feh.pt",
+  "mlp_model_path_feh_clip": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/clip/feh_clip.pt",
+  "mlp_model_path_ebprp": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/models/xp/mlp/ebprp.pt",
+  "stats_dir": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models/stats"
+}

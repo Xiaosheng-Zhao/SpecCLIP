@@ -1,0 +1,442 @@
+import os
+import sys
+from typing import Tuple
+
+import lightning as L
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+#from dinov2.eval.setup import setup_and_build_model
+
+from ..modules import MLP, CrossAttentionHead
+#from .specformer import SpecFormer
+from .specformer_control import SpectralMLPAutoencoder_xp as SpecFormer_xp
+from .specformer_control import SpecFormerControl20_wstd as SpecFormer_lm
+
+from torch import Tensor
+
+class SpecClipModel_mlp(L.LightningModule):
+    def __init__(
+        self,
+        gaia_xp_encoder: nn.Module,
+        lamost_lrs_encoder: nn.Module,
+        temperature: float = 15.5,
+        lr: float = 1e-4,
+        weight_decay: float = 0.05,
+        epochs: int = 100,
+        eta_min: float = 5e-7,
+        logit_scale: float = 15.5,
+        learnable_logit_scale: bool = False,
+    ):
+        """
+        The SpecCLIP model that takes an image and a spectrum and embeds them into a common space using CLIP loss.
+        Note that you must provide the image and LAMOST LRS encoders to be used for the embedding.
+
+        Args:
+            gaia_xp_encoder (nn.Module): The Gaia XP encoder to be used for embedding.
+            lamost_lrs_encoder (nn.Module): The LAMOST LRS encoder to be used for embedding.
+            temperature (float): The temperature parameter for the CLIP loss.
+            lr (float): The learning rate for the optimizer.
+            weight_decay (float): The weight decay for the optimizer.
+            epochs (int): The number of epochs for training.
+            eta_min (float): The minimum learning rate for the scheduler.
+            logit_scale (float): The logit scale for the CLIP loss.
+            learnable_logit_scale (bool): Whether the logit scale should be learnable.
+        """
+        super().__init__()
+        self.save_hyperparameters()
+
+        # Define the image and LAMOST LRS encoder
+        self.gaia_xp_encoder = gaia_xp_encoder
+        self.lamost_lrs_encoder = lamost_lrs_encoder
+
+        # Logit scale is fixed to 15.5 and is not a learnable parameter
+        if not learnable_logit_scale:
+            self.logit_scale = np.log(logit_scale)
+        else:
+            self.logit_scale = nn.Parameter(torch.ones([]) * np.log(logit_scale))
+
+        # Use CLIP loss
+        self.criterion = CLIPLoss()
+
+    def forward(
+        self,
+        input: torch.Tensor,
+        input_type: str,
+    ):
+        if input_type == "gaia_spectra":
+            return self.gaia_xp_encoder(input)
+
+        elif input_type == "lamost_spectra":
+            return self.lamost_lrs_encoder(input)
+
+        else:
+            raise ValueError("Input type must be either 'gaia_spectra' or 'lamost_spectra'")
+
+    def training_step(self, batch, batch_idx):
+        gaia_spectra, lamost_spectra = batch["gaia_spectra"], batch["lamost_spectra"]
+
+        # Get the Gaia XP and LAMOST LRS features
+        gaia_xp_features = self.gaia_xp_encoder(gaia_spectra)
+        lamost_lrs_features = self.lamost_lrs_encoder(lamost_spectra)
+
+        # Calculate the CLIP loss
+        loss_withlogit = self.criterion(
+            gaia_xp_features, lamost_lrs_features, self.hparams.temperature
+        )
+        loss_nologit = self.criterion(
+            gaia_xp_features, lamost_lrs_features, self.hparams.logit_scale
+        )
+
+        # Log the losses
+        self.log("train_loss_withlogit", loss_withlogit)
+        #self.log("train_loss_nologit", loss_nologit)
+        #self.log("scale", self.logit_scale)
+
+        # Return the loss
+        return loss_withlogit
+
+    def training_epoch_end(self, outputs):
+        #avg_train_loss = torch.stack([x['training_loss'] for x in outputs]).mean()
+        #print (outputs)
+        if outputs:
+            # Determine if the first element is a dictionary or a tensor
+            if isinstance(outputs[0], dict):
+                # Handle the case where outputs are dictionaries
+                # Assuming the key for the loss tensor is 'loss'
+                losses = [x['loss'] for x in outputs if 'loss' in x]
+                avg_train_loss = torch.stack(losses).mean()
+            elif isinstance(outputs[0], torch.Tensor):
+                # Handle the case where outputs are tensors
+                avg_train_loss = torch.stack(outputs).mean()
+            else:
+                print("Unsupported data type in outputs.")
+                return
+
+            # Log the average training loss
+            self.log('train_epoch_loss', avg_train_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        else:
+            print("No valid outputs received in training_epoch_end")
+
+        #avg_train_loss = torch.stack(outputs).mean()
+        self.log('training_loss', avg_train_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+
+    def validation_step(self, batch, batch_idx):
+        gaia_spectra, lamost_spectra = batch["gaia_spectra"], batch["lamost_spectra"]
+
+        # Get the Gaia XP and LAMOST LRS features
+        gaia_xp_features = self.gaia_xp_encoder(gaia_spectra)
+        lamost_lrs_features = self.lamost_lrs_encoder(lamost_spectra)
+
+        # Calculate the CLIP loss
+        val_loss_nologit = self.criterion(
+            gaia_xp_features, lamost_lrs_features, self.hparams.logit_scale
+        )
+        val_loss_withlogit = self.criterion(
+            gaia_xp_features, lamost_lrs_features, self.hparams.temperature
+        )
+
+        # Log the losses
+        #self.log("val_loss_nologit", val_loss_nologit)
+        self.log("val_loss_withlogit", val_loss_withlogit)
+
+        return val_loss_withlogit
+
+    def validation_epoch_end(self, outputs):
+        # Aggregate or directly use your validation loss
+        #print (outputs)
+        #avg_val_loss = torch.stack([x['val_training_loss'] for x in outputs]).mean()
+        if outputs:
+            if isinstance(outputs[0], dict):
+                losses = [x['val_loss'] for x in outputs if 'val_loss' in x]
+                avg_val_loss = torch.stack(losses).mean()
+            elif isinstance(outputs[0], torch.Tensor):
+                avg_val_loss = torch.stack(outputs).mean()
+            else:
+                print("Unsupported data type in validation outputs.")
+                return
+
+            # Log the average validation loss with epoch
+            epoch_info = f"Epoch {self.current_epoch}: "
+            self.log('val_epoch_loss', avg_val_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+            print(epoch_info + f"Average Validation Loss: {avg_val_loss.item()}")
+        else:
+            print("No valid outputs received in validation_epoch_end")
+
+class CLIPLoss(nn.Module):
+    def get_logits(
+        self,
+        gaia_xp_features: torch.FloatTensor,
+        lamost_lrs_features: torch.FloatTensor,
+        logit_scale: float,
+    ) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
+        # Normalize Gaia XP features
+        gaia_xp_features = F.normalize(gaia_xp_features, dim=-1, eps=1e-3)
+
+        # Normalize LAMOST LRS features
+        lamost_lrs_features = F.normalize(lamost_lrs_features, dim=-1, eps=1e-3)
+
+        # Calculate the logits for the Gaia XP and LAMOST LRS features
+        logits_per_gaia_xp = logit_scale * gaia_xp_features @ lamost_lrs_features.T
+        return logits_per_gaia_xp, logits_per_gaia_xp.T
+
+    def forward(
+        self,
+        gaia_xp_features: torch.FloatTensor,
+        lamost_lrs_features: torch.FloatTensor,
+        logit_scale: float,
+        output_dict: bool = False,
+    ) -> torch.FloatTensor:
+        # Get the logits for the image and spectrum features
+        logits_per_gaia_xp, logits_per_lamost_lrs = self.get_logits(
+            gaia_xp_features, lamost_lrs_features, logit_scale
+        )
+
+        # Calculate the contrastive loss
+        labels = torch.arange(
+            logits_per_gaia_xp.shape[0], device=gaia_xp_features.device, dtype=torch.long
+        )
+        total_loss = (
+            F.cross_entropy(logits_per_gaia_xp, labels)
+            + F.cross_entropy(logits_per_lamost_lrs, labels)
+        ) / 2
+        return {"contrastive_loss": total_loss} if output_dict else total_loss
+
+class LamostLRSHead(nn.Module):
+    def __init__(
+        self,
+        model_path: str,
+        embed_dim: int = 1024,
+        n_head: int = 4,
+        model_embed_dim: int = 768,
+        dropout: float = 0.1,
+        freeze_backbone: bool = True,
+        load_pretrained_weights=True,
+    ):
+        """
+        Cross-attention spectrum module that takes a spectrum and passes it through a pretrained SpecFormer model and
+        then through a cross-attention mechanism and MLP to get the final embedding.
+
+        Args:
+            save_path (str): Path to the checkpoint of the SpecFormer model.
+            embed_dim (int): Dimension of the SpecCLIP embedding.
+            n_head (int): Number of heads in the multihead attention.
+            model_embed_dim (int): Dimension of the SpecFormer embedding.
+            dropout (float): Dropout rate for MLP layers.
+            freeze_backbone (bool): Whether to freeze the backbone of the SpecFormer model.
+        """
+        super().__init__()
+        # Load the model from the checkpoint
+        checkpoint = torch.load(model_path)
+        self.backbone = SpecFormer_lm(**checkpoint["hyper_parameters"])
+        if load_pretrained_weights:
+            self.backbone.load_state_dict(checkpoint["state_dict"])
+
+        # Freeze backbone if necessary
+        self.freeze_backbone = freeze_backbone
+        if self.freeze_backbone:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
+
+        # Set up cross-attention
+        self.cross_attention = CrossAttentionHead(
+            embed_dim=embed_dim,
+            n_head=n_head,
+            model_embed_dim=model_embed_dim,
+            dropout=dropout,
+        )
+
+        # Set up MLP
+        self.mlp = MLP(
+            in_features=embed_dim,
+            hidden_features=4 * embed_dim,
+            dropout=dropout,
+        )
+
+    def forward(
+        self, x: torch.tensor, y: torch.tensor = None, return_weights: bool = False
+    ):
+        # Embed the spectrum using the pretrained model
+        with torch.set_grad_enabled(not self.freeze_backbone):
+            embedding = self.backbone(x)["embedding"]
+
+        # Pass through cross-attention
+        x, attentions = self.cross_attention(embedding)
+
+        # Pass through MLP and residual connection
+        x = x + self.mlp(x)
+
+        if return_weights:
+            return x.squeeze(), attentions[1]
+
+        return x.squeeze()
+
+class GaiaXPHeadWithMLP(nn.Module):
+    def __init__(
+        self,
+        model_path: str,
+        embed_dim: int = 768,
+        n_head: int = 4,  # Kept for parameter compatibility
+        model_embed_dim: int = 768,
+        dropout: float = 0.1,
+        freeze_backbone: bool = True,
+        load_pretrained_weights=True,
+    ):
+        """
+        MLP-based module that replaces cross-attention with equivalent parameter count MLPs.
+        Total parameters closely match the original implementation (7.08M).
+
+        Args:
+            model_path (str): Path to the checkpoint of the SpecFormer model.
+            embed_dim (int): Dimension of the embedding.
+            n_head (int): Kept for parameter compatibility (not used).
+            model_embed_dim (int): Dimension of the model embedding.
+            dropout (float): Dropout rate for MLP layers.
+            freeze_backbone (bool): Whether to freeze the backbone of the model.
+            load_pretrained_weights (bool): Whether to load pretrained weights.
+        """
+        super().__init__()
+        # Load the model from the checkpoint
+        checkpoint = torch.load(model_path)
+        self.backbone = SpecFormer_xp(**checkpoint["hyper_parameters"])
+        if load_pretrained_weights:
+            self.backbone.load_state_dict(checkpoint["state_dict"])
+
+        # Freeze backbone if necessary
+        self.freeze_backbone = freeze_backbone
+        if self.freeze_backbone:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
+
+        # Initial projection
+        self.projection = nn.Linear(model_embed_dim, embed_dim)
+        
+        # Feature transformation with precisely calculated parameter count
+        intermediate_dim = 1160  # Carefully selected to match parameter count
+        self.feature_mlp = nn.Sequential(
+            nn.Linear(embed_dim, intermediate_dim),
+            nn.LayerNorm(intermediate_dim),
+            nn.GELU(),
+            nn.Linear(intermediate_dim, embed_dim),
+            nn.LayerNorm(embed_dim),
+            nn.Dropout(dropout)
+        )
+        
+        # Main MLP - same as original
+        self.mlp = MLP(
+            in_features=embed_dim,
+            hidden_features=4 * embed_dim,
+            dropout=dropout,
+        )
+
+    def forward(
+        self, x: torch.tensor, y: torch.tensor = None, return_weights: bool = False
+    ):
+        # Use 'latent' instead of 'embedding'
+        with torch.set_grad_enabled(not self.freeze_backbone):
+            embedding = self.backbone(x)["latent"]
+
+        # Project to target dimension
+        x = self.projection(embedding)
+        
+        # Apply feature transformation
+        x = self.feature_mlp(x)
+        
+        # Apply main MLP with residual connection
+        x = x + self.mlp(x)
+
+        if return_weights:
+            # For compatibility, return dummy attention weights
+            dummy_attentions = torch.zeros(
+                (embedding.size(0), embedding.size(1)), 
+                device=embedding.device
+            )
+            return x.squeeze(), dummy_attentions
+
+        return x.squeeze()
+    
+class LamostLRSHeadWithMLP(nn.Module):
+    def __init__(
+        self,
+        model_path: str,
+        embed_dim: int = 768,
+        n_head: int = 4,  # Kept for parameter compatibility
+        model_embed_dim: int = 768,
+        dropout: float = 0.1,
+        freeze_backbone: bool = True,
+        load_pretrained_weights=True,
+    ):
+        """
+        MLP-based module that replaces cross-attention with equivalent parameter count MLPs.
+        Total parameters closely match the original implementation (7.08M).
+
+        Args:
+            model_path (str): Path to the checkpoint of the SpecFormer model.
+            embed_dim (int): Dimension of the embedding.
+            n_head (int): Kept for parameter compatibility (not used).
+            model_embed_dim (int): Dimension of the model embedding.
+            dropout (float): Dropout rate for MLP layers.
+            freeze_backbone (bool): Whether to freeze the backbone of the model.
+            load_pretrained_weights (bool): Whether to load pretrained weights.
+        """
+        super().__init__()
+        # Load the model from the checkpoint
+        checkpoint = torch.load(model_path)
+        self.backbone = SpecFormer_lm(**checkpoint["hyper_parameters"])
+        if load_pretrained_weights:
+            self.backbone.load_state_dict(checkpoint["state_dict"])
+
+        # Freeze backbone if necessary
+        self.freeze_backbone = freeze_backbone
+        if self.freeze_backbone:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
+
+        # Initial projection
+        self.projection = nn.Linear(model_embed_dim, embed_dim)
+        
+        # Feature transformation with precisely calculated parameter count
+        intermediate_dim = 1160  # Carefully selected to match parameter count
+        self.feature_mlp = nn.Sequential(
+            nn.Linear(embed_dim, intermediate_dim),
+            nn.LayerNorm(intermediate_dim),
+            nn.GELU(),
+            nn.Linear(intermediate_dim, embed_dim),
+            nn.LayerNorm(embed_dim),
+            nn.Dropout(dropout)
+        )
+        
+        # Main MLP - same as original
+        self.mlp = MLP(
+            in_features=embed_dim,
+            hidden_features=4 * embed_dim,
+            dropout=dropout,
+        )
+
+    def forward(
+        self, x: torch.tensor, y: torch.tensor = None, return_weights: bool = False
+    ):
+        # Use 'latent' instead of 'embedding'
+        with torch.set_grad_enabled(not self.freeze_backbone):
+            #embedding = self.backbone(x)["latent"]
+            embedding = torch.mean(self.backbone(x)["embedding"], -2)
+
+        # Project to target dimension
+        x = self.projection(embedding)
+        
+        # Apply feature transformation
+        x = self.feature_mlp(x)
+        
+        # Apply main MLP with residual connection
+        x = x + self.mlp(x)
+
+        if return_weights:
+            # For compatibility, return dummy attention weights
+            dummy_attentions = torch.zeros(
+                (embedding.size(0), embedding.size(1)), 
+                device=embedding.device
+            )
+            return x.squeeze(), dummy_attentions
+
+        return x.squeeze()

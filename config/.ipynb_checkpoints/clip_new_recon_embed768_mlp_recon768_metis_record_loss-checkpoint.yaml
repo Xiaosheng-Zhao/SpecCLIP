@@ -1,0 +1,79 @@
+seed_everything: 42
+trainer:
+  default_root_dir: "/scratch/zxs/scripts/foundations/Foundations/outputs"
+  enable_checkpointing: true
+  gradient_clip_val: 1.
+  max_epochs: 750 #10
+  #max_steps: 122500 #500000 #5000 #500_000
+  precision: 32 #null
+  #limit_val_batches: 100
+  accelerator: 'gpu' #new
+  devices: 8 #new
+  strategy: 'ddp'
+  num_nodes: 1
+  logger:
+    class_path: CustomWandbLogger
+    init_args:
+      project: "astroclip-spectrum"
+      entity: "{WANDB_ENTITY_NAME}"
+      save_dir: ${trainer.default_root_dir}
+  callbacks:
+    - class_path: LearningRateMonitor
+      init_args:
+        logging_interval: "step"
+    - class_path: ModelCheckpoint
+      init_args:
+        save_last: True #link
+        save_top_k: 2
+        monitor: "val_epoch_loss"
+        mode: "min"
+        filename: "{epoch}-{val_loss:.4f}"
+    - class_path: CustomEarlyStopping
+      init_args:
+        monitor: "val_epoch_loss"
+        min_delta: 1e-4
+        patience: 20
+        verbose: False
+        mode: "min"
+        check_finite: True
+    - class_path: SpecificEpochSaver
+      init_args:
+        epochs_to_save: [110]
+        filename: "specific-epoch-{epoch:03d}-val_loss={val_loss:.4f}.ckpt"
+        dirpath: /scratch/zxs/scripts/foundations/Foundations/outputs/aeclip_checkpoints_lrs_epoch_predrecons_recordloss/
+    - class_path: EpochLossCallback
+      init_args:
+        log_train_path: "/scratch/zxs/scripts/foundations/Foundations/outputs/training_loss_clip_100w_recon_1node_correct_new2_embed768_predrecon_mlp_recordloss.txt"
+        log_val_path: "/scratch/zxs/scripts/foundations/Foundations/outputs/validation_loss_clip_100w_recon_1node_correct_new2_embed768_predrecon_mlp_recordloss.txt"
+model:
+  class_path: SpecClipModel_reconstruct_embed768_mlp_recordloss
+  init_args:
+    
+    gaia_xp_encoder:
+      class_path: specclip.models.specclip_reconstruct_embed768_mlp_recordloss.GaiaXPHeadWithMLP
+      init_args:
+        model_path: "/scratch/zxs/scripts/foundations/Foundations/filesback/tianqing/pretrained_models/specific-epoch-191-val_loss=0.0002_ae_xp_768.ckpt"
+        embed_dim: 768
+
+    lamost_lrs_encoder:
+      class_path: specclip.models.specclip_reconstruct_embed768_mlp_recordloss.LamostLRSHead
+      init_args:
+        model_path: "/scratch/zxs/scripts/foundations/Foundations/filesback/tianqing/pretrained_models/epoch=128-val_loss=0.0000_mt_lrs.ckpt"
+        embed_dim: 768
+data:
+  class_path: SpecClipDataloader
+  init_args:
+    path: "/scratch/zxs/scripts/foundations/Foundations/filesback/tianqing/datasets/gaia_lamost_split.h5"
+    batch_size: 1024
+    num_workers: 32
+optimizer:
+  class_path: torch.optim.adamw.AdamW
+  init_args:
+    lr: 1e-4 #1e-5
+    weight_decay: 0.05 #1e-1
+lr_scheduler:
+  class_path: CosineAnnealingWithWarmupLR
+  init_args:
+    T_max: 10000
+    T_warmup: 1000 # 2000 #200 #2000
+    eta_min: ${eval:'${optimizer.init_args.lr}//100'}

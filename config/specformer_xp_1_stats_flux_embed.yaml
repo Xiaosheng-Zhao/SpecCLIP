@@ -1,0 +1,75 @@
+seed_everything: 42
+trainer:
+  default_root_dir: "/mnt/tianwen-course/tianwen/home/zxs/tianqin/astroclip/outputs"
+  enable_checkpointing: true
+  gradient_clip_val: 1.
+  max_steps: 122500 #500000 #5000 #500_000
+  precision: 32 #null
+  limit_val_batches: 100
+  accelerator: 'gpu' #new
+  devices: 8 #new
+  strategy: 'ddp'
+  num_nodes: 8
+  logger:
+    class_path: CustomWandbLogger
+    init_args:
+      project: "astroclip-spectrum"
+      entity: "{WANDB_ENTITY_NAME}"
+      save_dir: ${trainer.default_root_dir}
+  callbacks:
+    - class_path: LearningRateMonitor
+      init_args:
+        logging_interval: "step"
+    - class_path: ModelCheckpoint
+      init_args:
+        save_last: True #link
+        save_top_k: 1
+        monitor: "val_epoch_loss"
+        mode: "min"
+        filename: "{epoch}-{val_loss:.4f}"
+    - class_path: CustomEarlyStopping
+      init_args:
+        monitor: "val_epoch_loss"
+        min_delta: 1e-5
+        patience: 20
+        verbose: False
+        mode: "min"
+        check_finite: True
+    - class_path: EpochLossCallback
+      init_args:
+        log_train_path: "/mnt/tianwen-course/tianwen/home/zxs/training_loss_xp_1_stats_more2_flux_embed.txt"
+        log_val_path: "/mnt/tianwen-course/tianwen/home/zxs/validation_loss_xp_1_stats_more2_flux_embed.txt"
+model:
+  class_path: SpecFormerControl1_stats
+  init_args:
+    input_dim: 1
+    embed_dim: 768
+    num_layers: 6 #6
+    num_heads: 6 #6
+    max_len: 350 #800
+    dropout: 0.
+    mask_num_chunks: 6 #new
+    mask_chunk_width: 20 #new
+    slice_section_length: 20 #new
+    slice_overlap: 10 #new
+    include_stats: True
+data:
+  class_path: SpectrumDataloader
+  init_args:
+    path: "/mnt/tianwen-tianqing-nas/tianwen/home/zxs/gaia_spectra_split100w_more2_flux.h5"
+    batch_size: 64
+    num_workers: 32
+optimizer:
+  class_path: torch.optim.adamw.AdamW
+  init_args:
+    lr: 1e-5 #1e-5
+    weight_decay: 1e-1 #1e-1
+    betas:
+      - 0.9
+      - 0.95
+lr_scheduler:
+  class_path: CosineAnnealingWithWarmupLR
+  init_args:
+    T_max: ${trainer.max_steps}
+    T_warmup: 1220 # 2000 #200 #2000
+    eta_min: ${eval:'${optimizer.init_args.lr}//100'}
