@@ -31,7 +31,7 @@ def get_dataset_config():
     }
 
 DATASET_CONFIG = get_dataset_config()
-DATASET_REPO_ID = DATASET_CONFIG.get("repository", "astroshawn/SpecCLIP-TestData-Small")
+DATASET_REPO_ID = DATASET_CONFIG.get("repository", "astroshawn/SpecCLIP-TestData")
 
 
 def download_test_data(local_dir=None, filename=None):
