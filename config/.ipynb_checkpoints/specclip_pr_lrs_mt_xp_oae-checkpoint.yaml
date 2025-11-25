@@ -1,6 +1,6 @@
 seed_everything: 42
 trainer:
-  default_root_dir: "/scratch/zxs/scripts/foundations/Foundations/outputs"
+  default_root_dir: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs"
   enable_checkpointing: true
   gradient_clip_val: 1.
   max_epochs: 750 #10
@@ -8,7 +8,7 @@ trainer:
   precision: 32 #null
   #limit_val_batches: 100
   accelerator: 'gpu' #new
-  devices: 8 #new
+  devices: 2 #new
   strategy: 'ddp'
   num_nodes: 1
   logger:
@@ -43,8 +43,8 @@ trainer:
         dirpath: /scratch/zxs/scripts/foundations/Foundations/outputs/aeclip_checkpoints_lrs_epoch_predrecons_recordloss/
     - class_path: EpochLossCallback
       init_args:
-        log_train_path: "/scratch/zxs/scripts/foundations/Foundations/outputs/training_loss_clip_100w_recon_1node_correct_new2_embed768_predrecon_mlp_recordloss.txt"
-        log_val_path: "/scratch/zxs/scripts/foundations/Foundations/outputs/validation_loss_clip_100w_recon_1node_correct_new2_embed768_predrecon_mlp_recordloss.txt"
+        log_train_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/training_loss_clip_100w_recon_1node_correct_new2_embed768_predrecon_mlp_recordloss.txt"
+        log_val_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/validation_loss_clip_100w_recon_1node_correct_new2_embed768_predrecon_mlp_recordloss.txt"
 model:
   class_path: SpecClipModel_reconstruct_embed768_mlp_recordloss
   init_args:
@@ -52,19 +52,19 @@ model:
     gaia_xp_encoder:
       class_path: specclip.models.specclip_reconstruct_embed768_mlp_recordloss.GaiaXPHeadWithMLP
       init_args:
-        model_path: "/scratch/zxs/scripts/foundations/Foundations/filesback/tianqing/pretrained_models/specific-epoch-191-val_loss=0.0002_ae_xp_768.ckpt"
+        model_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs/astroclip-spectrum/utv0iyih/checkpoints/last.ckpt"
         embed_dim: 768
 
     lamost_lrs_encoder:
       class_path: specclip.models.specclip_reconstruct_embed768_mlp_recordloss.LamostLRSHead
       init_args:
-        model_path: "/scratch/zxs/scripts/foundations/Foundations/filesback/tianqing/pretrained_models/epoch=128-val_loss=0.0000_mt_lrs.ckpt"
+        model_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs/astroclip-spectrum/rk1nxezc/checkpoints/last.ckpt"
         embed_dim: 768
 data:
   class_path: SpecClipDataloader
   init_args:
-    path: "/scratch/zxs/scripts/foundations/Foundations/filesback/tianqing/datasets/gaia_lamost_split.h5"
-    batch_size: 1024
+    path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/shared/gaia_lamost_split_subsample_1024.h5"
+    batch_size: 64
     num_workers: 32
 optimizer:
   class_path: torch.optim.adamw.AdamW

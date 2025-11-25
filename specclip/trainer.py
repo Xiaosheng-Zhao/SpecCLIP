@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import os
-#os.environ["CUDA_VISIBLE_DEVICES"] = "6"
 import time
 from datetime import timedelta
 from typing import Any, Optional

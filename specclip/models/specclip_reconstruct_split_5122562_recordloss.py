@@ -86,7 +86,7 @@ class SpecClipModel_reconstruct_split_5122562_recordloss(L.LightningModule):
 
         # 2. Reconstruction Losses using both private and shared representations
         gaia_recon = self.gaia_xp_decoder(gaia_shared, gaia_private)
-        lamost_recon = self.spectrum_decoder(lamost_shared, lamost_private)
+        lamost_recon = self.lamost_lrs_decoder(lamost_shared, lamost_private)
         
         recon_loss = (
             self.reconstruction_loss(gaia_recon, gaia_spectra[:,:,0]) +
@@ -164,7 +164,7 @@ class SpecClipModel_reconstruct_split_5122562_recordloss(L.LightningModule):
 
         # 2. Reconstruction Losses
         gaia_recon = self.gaia_xp_decoder(gaia_shared, gaia_private)
-        lamost_recon = self.spectrum_decoder(lamost_shared, lamost_private)
+        lamost_recon = self.lamost_lrs_decoder(lamost_shared, lamost_private)
         
         val_recon_loss = (
             self.reconstruction_loss(gaia_recon, gaia_spectra[:,:,0]) +
