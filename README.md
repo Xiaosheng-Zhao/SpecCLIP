@@ -213,8 +213,8 @@ Subsequent work was supported by **Johns Hopkins University** (through the gener
 
 ## 📬 Contact & Support
 
-- **Issues:** [GitHub Issues](https://github.com/xiaoshengzhao/SpecCLIP-finetune/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/xiaoshengzhao/SpecCLIP-finetune/discussions)
+- **Issues:** [GitHub Issues](https://github.com/Xiaosheng-Zhao/SpecCLIP/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Xiaosheng-Zhao/SpecCLIP/discussions)
 - **Email:** [xzhao113@jh.edu]
 
 **Star ⭐ this repo if you find it useful!**
