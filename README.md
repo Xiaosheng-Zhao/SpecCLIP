@@ -141,7 +141,7 @@ retriever.build_embedding_database(batch_size=1000, save_path='./test_embeddings
 retriever.load_embeddings('./test_embeddings.npz')
 
 # Load the external spectra data
-wavelength, flux = load_spectrum_data('./Foundation_LRS/test_data/sample4_txt.csv')
+wavelength, flux = load_spectrum_data('./test_data/sample4_txt.csv')
 
 # Predict corresponding Gaia XP spectrum
 prediction_external = retriever.predict_cross_modal(
@@ -161,7 +161,7 @@ retriever.plot_cross_modal_prediction(
 Find the 4 most similar stars from Gaia XP catalog:
 ```python
 # Load external LAMOST spectrum
-wavelength, flux = load_spectrum_data('./Foundation_LRS/test_data/sample1_matrix.fits')
+wavelength, flux = load_spectrum_data('./test_data/sample1_matrix.fits')
 
 # Find similar Gaia XP spectra
 results_external_cross = retriever.find_similar_spectra(
