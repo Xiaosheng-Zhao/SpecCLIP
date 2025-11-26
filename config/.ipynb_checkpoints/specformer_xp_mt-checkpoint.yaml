@@ -3,13 +3,13 @@ trainer:
   default_root_dir: "{SPECCLIP_ROOT}/outputs"
   enable_checkpointing: true
   gradient_clip_val: 1.
-  max_steps: 122500 
+  max_steps: 980000
   precision: 32 
   limit_val_batches: 100
   accelerator: 'gpu' 
   devices: 8 
   strategy: 'ddp'
-  num_nodes: 8
+  num_nodes: 1
   logger:
     class_path: CustomWandbLogger
     init_args:
@@ -71,5 +71,5 @@ lr_scheduler:
   class_path: CosineAnnealingWithWarmupLR
   init_args:
     T_max: ${trainer.max_steps}
-    T_warmup: 1220 
+    T_warmup: 9760
     eta_min: ${eval:'${optimizer.init_args.lr}//100'}
