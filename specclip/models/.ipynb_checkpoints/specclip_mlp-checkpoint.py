@@ -1,3 +1,18 @@
+# =============================================================================
+# SpecCLIP-mlp Pretraining Module
+# 
+# The SpecCLIP-mlp model contains only:
+#   • contrastive loss,
+# to learn a shared latent representations across modalities.
+# 
+# It uses modality-specific pre-trained encoders:
+#   • Gaia XP encoder: ordinary OAE-style reconstruction
+#   • LAMOST LRS encoder: masked-transformer objective
+#
+# Portions of this implementation are adapted from AstroCLIP
+# (Liam et al. 2024): https://github.com/waqarsyed/astroclip
+# =============================================================================
+
 import os
 import sys
 from typing import Tuple
@@ -7,10 +22,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#from dinov2.eval.setup import setup_and_build_model
 
 from ..modules import MLP, CrossAttentionHead
-#from .specformer import SpecFormer
 from .specformer_control import SpectralMLPAutoencoder_xp as SpecFormer_xp
 from .specformer_control import SpecFormerControl20_wstd as SpecFormer_lm
 
@@ -144,9 +157,6 @@ class SpecClipModel_mlp(L.LightningModule):
         return val_loss_withlogit
 
     def validation_epoch_end(self, outputs):
-        # Aggregate or directly use your validation loss
-        #print (outputs)
-        #avg_val_loss = torch.stack([x['val_training_loss'] for x in outputs]).mean()
         if outputs:
             if isinstance(outputs[0], dict):
                 losses = [x['val_loss'] for x in outputs if 'val_loss' in x]
@@ -285,7 +295,7 @@ class GaiaXPHeadWithMLP(nn.Module):
     ):
         """
         MLP-based module that replaces cross-attention with equivalent parameter count MLPs.
-        Total parameters closely match the original implementation (7.08M).
+        Total parameters closely match the cross-attention implementation (7.08M).
 
         Args:
             model_path (str): Path to the checkpoint of the SpecFormer model.
@@ -313,7 +323,7 @@ class GaiaXPHeadWithMLP(nn.Module):
         self.projection = nn.Linear(model_embed_dim, embed_dim)
         
         # Feature transformation with precisely calculated parameter count
-        intermediate_dim = 1160  # Carefully selected to match parameter count
+        intermediate_dim = 1160 
         self.feature_mlp = nn.Sequential(
             nn.Linear(embed_dim, intermediate_dim),
             nn.LayerNorm(intermediate_dim),
@@ -323,7 +333,7 @@ class GaiaXPHeadWithMLP(nn.Module):
             nn.Dropout(dropout)
         )
         
-        # Main MLP - same as original
+        # Main MLP 
         self.mlp = MLP(
             in_features=embed_dim,
             hidden_features=4 * embed_dim,
@@ -333,7 +343,6 @@ class GaiaXPHeadWithMLP(nn.Module):
     def forward(
         self, x: torch.tensor, y: torch.tensor = None, return_weights: bool = False
     ):
-        # Use 'latent' instead of 'embedding'
         with torch.set_grad_enabled(not self.freeze_backbone):
             embedding = self.backbone(x)["latent"]
 
@@ -347,7 +356,6 @@ class GaiaXPHeadWithMLP(nn.Module):
         x = x + self.mlp(x)
 
         if return_weights:
-            # For compatibility, return dummy attention weights
             dummy_attentions = torch.zeros(
                 (embedding.size(0), embedding.size(1)), 
                 device=embedding.device
@@ -369,7 +377,7 @@ class LamostLRSHeadWithMLP(nn.Module):
     ):
         """
         MLP-based module that replaces cross-attention with equivalent parameter count MLPs.
-        Total parameters closely match the original implementation (7.08M).
+        Total parameters closely match the cross-attention implementation (7.08M).
 
         Args:
             model_path (str): Path to the checkpoint of the SpecFormer model.
@@ -397,7 +405,7 @@ class LamostLRSHeadWithMLP(nn.Module):
         self.projection = nn.Linear(model_embed_dim, embed_dim)
         
         # Feature transformation with precisely calculated parameter count
-        intermediate_dim = 1160  # Carefully selected to match parameter count
+        intermediate_dim = 1160 
         self.feature_mlp = nn.Sequential(
             nn.Linear(embed_dim, intermediate_dim),
             nn.LayerNorm(intermediate_dim),
@@ -407,7 +415,7 @@ class LamostLRSHeadWithMLP(nn.Module):
             nn.Dropout(dropout)
         )
         
-        # Main MLP - same as original
+        # Main MLP
         self.mlp = MLP(
             in_features=embed_dim,
             hidden_features=4 * embed_dim,
@@ -417,7 +425,6 @@ class LamostLRSHeadWithMLP(nn.Module):
     def forward(
         self, x: torch.tensor, y: torch.tensor = None, return_weights: bool = False
     ):
-        # Use 'latent' instead of 'embedding'
         with torch.set_grad_enabled(not self.freeze_backbone):
             #embedding = self.backbone(x)["latent"]
             embedding = torch.mean(self.backbone(x)["embedding"], -2)
@@ -432,7 +439,6 @@ class LamostLRSHeadWithMLP(nn.Module):
         x = x + self.mlp(x)
 
         if return_weights:
-            # For compatibility, return dummy attention weights
             dummy_attentions = torch.zeros(
                 (embedding.size(0), embedding.size(1)), 
                 device=embedding.device

@@ -1,3 +1,7 @@
+# This implementation is adapted from the AstroCLIP framework
+# (Liam et al. 2024), with modifications specific to SpecCLIP.
+# Original AstroCLIP code: https://github.com/PolymathicAI/AstroCLIP
+
 import math
 import numbers
 from typing import Callable, Optional, Tuple, Union

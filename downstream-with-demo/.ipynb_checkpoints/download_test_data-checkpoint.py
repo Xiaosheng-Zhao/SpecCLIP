@@ -1,7 +1,7 @@
 """
 Download test data from HuggingFace Datasets (separate from models)
 
-This script downloads test data from the SpecCLIP-TestData dataset repository.
+This script downloads test data from the SpecCLIP-TestData-Small dataset repository.
 """
 from huggingface_hub import hf_hub_download, snapshot_download
 from pathlib import Path
@@ -21,7 +21,7 @@ def get_dataset_config():
 
     # Default configuration
     return {
-        "repository": "astroshawn/SpecCLIP-TestData",
+        "repository": "astroshawn/SpecCLIP-TestData-Small",
         "repo_type": "dataset",
         "files": {
             "gaia_lamost_test_only.h5": {
@@ -31,7 +31,7 @@ def get_dataset_config():
     }
 
 DATASET_CONFIG = get_dataset_config()
-DATASET_REPO_ID = DATASET_CONFIG.get("repository", "astroshawn/SpecCLIP-TestData")
+DATASET_REPO_ID = DATASET_CONFIG.get("repository", "astroshawn/SpecCLIP-TestData-Small")
 
 
 def download_test_data(local_dir=None, filename=None):

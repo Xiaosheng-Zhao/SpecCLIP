@@ -1,3 +1,7 @@
+# This implementation is adapted from the AstroCLIP framework
+# (Liam et al. 2024), with modifications specific to SpecCLIP.
+# Original AstroCLIP code: https://github.com/PolymathicAI/AstroCLIP
+
 from argparse import Namespace
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -11,11 +15,8 @@ WARN_ONCE = True
 
 # TODO: change here the defaults
 # These are fallback values if no .env file is found
-SPECCLIP_ROOT = "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs"
-WANDB_ENTITY_NAME = "model-variant-scipt"
-
-# Backward compatibility
-ASTROCLIP_ROOT = SPECCLIP_ROOT
+SPECCLIP_ROOT = "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP"
+WANDB_ENTITY_NAME = "specclip-model-variant"
 
 def default_dotenv_values():
     """Use a default .env but tell the user how to create their own."""

@@ -1,5 +1,9 @@
 #!/usr/bin/env python
+# Adapted from AstroCLIP (Liam et al. 2024).
+# Original code available at: https://github.com/PolymathicAI/AstroCLIP
+
 import os
+os.environ.setdefault("WANDB_MODE", "online")
 import time
 from datetime import timedelta
 from typing import Any, Optional
@@ -20,10 +24,13 @@ from torch.optim import Optimizer
 from specclip import format_with_env
 from specclip.callbacks import CustomSaveConfigCallback, CustomEarlyStopping  
 
-wandb.init(mode="disabled")
+#wandb.init(mode="disabled")
 
 
 class WrappedLightningCLI(LightningCLI):
+    def before_instantiate_classes(self) -> None:
+        self.config = format_with_env(self.config)
+        
     # Changing the lr_scheduler interval to step instead of epoch
     @staticmethod
     def configure_optimizers(

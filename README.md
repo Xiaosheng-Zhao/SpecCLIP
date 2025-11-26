@@ -3,6 +3,7 @@
 [![Hugging Face](https://img.shields.io/badge/🤗%20Model-SpecCLIP-yellow)](https://huggingface.co/astroshawn/SpecCLIP/)
 [![arXiv](https://img.shields.io/badge/arXiv-2507.01939-b31b1b.svg)](https://arxiv.org/abs/2507.01939)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17717920.svg)](https://doi.org/10.5281/zenodo.17717920)
 
 **A contrastive learning + domain-specific information preservation foundation model for cross-survey stellar spectroscopy**
 
@@ -12,7 +13,7 @@
 **Key Capabilities:**
 - 🎯 Predict stellar parameters (T_eff, log g, [Fe/H], RV, chemical abundances) from LAMOST LRS and Gaia XP spectrum
 - 🔄 Translate between different spectroscopic surveys (LAMOST ⟷ Gaia XP)
-- 🔍 Retrieve similar stars from 10M+ LAMOST LRS spectra and 220M+ Gaia XP spectra
+- 🔍 Retrieve similar stars from both LAMOST LRS spectra and Gaia XP spectra
 
 **Down-Stream Tasks Overview**
 
@@ -61,7 +62,13 @@ pip install -e .
 | `SpecCLIP-CLIP-pr` | Gaia XP  ⟷ LAMOST contrastive +pred+recon  | 768           | [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_predrecon_mlp.ckpt) |
 | `SpecCLIP-CLIP-split` | Gaia XP  ⟷ LAMOST contrastive+(pred+recon-split)    | 768           | [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_split_mlp.ckpt) |
 
-**Load directly in Python:**
+**Examples of training with your own data:**  
+Refer to the `scripts/` directory. Before running any training script, create a `.env` file inside the `specclip/` folder and include:
+
+```bash
+SPECCLIP_ROOT="/path/to/your/specclip"
+WANDB_ENTITY_NAME="your_wandb_entity"
+```
 
 ---
 
@@ -183,25 +190,30 @@ retriever.plot_retrieval_results(
 
 ---
 
----
-
 ## 📊 Citation
 
-If you use SpecCLIP in your research, please cite:
+If you use **SpecCLIP** in your research, please cite both the paper and the software:
+
 ```bibtex
 @article{Zhao2025SpecCLIP,
-  author        = {Xiaosheng Zhao et al.},
+  author        = {Zhao, Xiaosheng and others},
   title         = {SpecCLIP: Aligning and Translating Spectroscopic Measurements for Stars},
   journal       = {arXiv e-prints},
   year          = {2025},
   eprint        = {2507.01939},
-  doi           = {10.48550/arXiv.2507.01939},
+  doi           = {10.48550/arXiv.250701939},
   archivePrefix = {arXiv},
-  primaryClass  = {astro-ph.IM},
-  adsurl        = {https://ui.adsabs.harvard.edu/abs/2025arXiv250701939Z}
+  primaryClass  = {astro-ph.IM}
+}
+
+@software{Zhao2025SpecCLIPSoftware,
+  author       = {Zhao, Xiaosheng and others},
+  title        = {SpecCLIP: A Foundation Model for Stellar Spectroscopy},
+  version      = {1.0.0},
+  doi          = {10.5281/zenodo.17717920},
+  url          = {https://doi.org/10.xxxx/zenodo.17717920}
 }
 ```
-
 ---
 
 ## 🪐 Acknowledgments

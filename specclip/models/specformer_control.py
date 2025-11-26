@@ -1,3 +1,15 @@
+# =============================================================================
+# SpecCLIP Pretraining Module
+# 
+# This script defines the core classes used for pretraining Gaia XP and 
+# LAMOST LRS encoders with:
+#   • masked-transformer objectives,
+#   • ordinary OAE-style reconstruction
+#
+# Portions of this implementation are adapted from AstroCLIP
+# (Liam et al. 2024): https://github.com/PolymathicAI/AstroCLIP
+# =============================================================================
+
 import math
 
 import lightning as L
@@ -40,6 +52,7 @@ class MLPBlock(nn.Module):
         else:
             return self.mlp(self.norm(x))
 
+# Gaia XP pretrained model, using the ordinary auto-encoder (OAE) model
 class SpectralMLPAutoencoder_xp(L.LightningModule):
     def __init__(
         self,
@@ -147,12 +160,10 @@ class SpectralMLPAutoencoder_xp(L.LightningModule):
         x_normalized = (x - mean) / std  # [batch_size, seq_len]
 
         # Create std token
-        # Following your original approach, use log10(std) as the std token value
         std_token = std  # [batch_size, 1]
         mean_token = mean  # [batch_size, 1]
 
         # Concatenate std token with normalized spectrum
-        # This is similar to your original approach of prepending the std
         x_with_std = torch.cat([mean_token, std_token, x_normalized], dim=1)  # [batch_size, seq_len+1]
 
         return x_with_std
@@ -250,9 +261,6 @@ class SpectralMLPAutoencoder_xp(L.LightningModule):
     def training_step(self, batch, batch_idx):
         # Get spectra from batch
         spectra = batch["spectra"]
-
-        #print (spectra.shape)
-        #print (spectra[0, :10, :])
 
         # Preprocess - adds std token
         input_data = self.preprocess(spectra)
@@ -360,6 +368,7 @@ class SpectralMLPAutoencoder_xp(L.LightningModule):
         except Exception as e:
             print(f"Error in validation_epoch_end: {str(e)}")
 
+# LAMOST LRS pretrained model, using the masked transformer (MT) model
 class SpecFormerControl20_wstd(L.LightningModule):
     def __init__(
         self,
@@ -446,9 +455,7 @@ class SpecFormerControl20_wstd(L.LightningModule):
         
         return loss
 
-    #def validation_step(self, batch):
     def validation_step(self, batch, batch_idx):
-        #print (batch["spectrum"].shape) #64, 3869, 1
         input = self.preprocess(batch["spectra"])
         target = torch.clone(input)
 
@@ -462,9 +469,7 @@ class SpecFormerControl20_wstd(L.LightningModule):
         locs = (input != target).type_as(output)
         loss = F.mse_loss(output * locs, target * locs, reduction="mean") / locs.mean()
         self.log("val_training_loss", loss, prog_bar=True)
-        #print ('val losssss',loss)
         return loss
-        ##return {"val_training_loss": loss} 
 
     def training_epoch_end(self, outputs):
         if not outputs:
@@ -528,7 +533,6 @@ class SpecFormerControl20_wstd(L.LightningModule):
         x = self._slice(x)
         x = F.pad(x, pad=(1, 0, 1, 0), mode="constant", value=0)
         x[:, 0, 0] = torch.log10(std.squeeze()) 
-        #x[:, 0, 1] = (std.squeeze() - 2) / 8
         return x
 
     def _reset_parameters_datapt(self):
@@ -579,6 +583,7 @@ class SpecFormerControl20_wstd(L.LightningModule):
 
         return masked_seq
 
+# Gaia XP pretrained model, using the masked transformer (MT) model
 class SpecFormerControl1_stats(L.LightningModule):
     def __init__(
         self,
@@ -678,7 +683,6 @@ class SpecFormerControl1_stats(L.LightningModule):
             
         return x
 
-    # Rest of the methods remain unchanged
     def training_step(self, batch):
         input = self.preprocess(batch["spectra"])
         target = torch.clone(input)
@@ -771,8 +775,6 @@ class SpecFormerControl1_stats(L.LightningModule):
             x.shape[1] - self.hparams.slice_overlap,
             self.hparams.slice_section_length - self.hparams.slice_overlap,
         )
-        #print ([x[:, start : start + self.hparams.slice_section_length].transpose(1, 2).shape for start in start_indices])
-        #print (x.shape) # 64,20; 64,19
         sections = [
             x[:, start : start + self.hparams.slice_section_length].transpose(1, 2)
             for start in start_indices
@@ -805,6 +807,7 @@ class SpecFormerControl1_stats(L.LightningModule):
 
         return masked_seq
 
+# LAMOST LRS pretrained model, using the ordinary auto-encoder (OAE) model
 class SpectralMLPAutoencoder(L.LightningModule):
     def __init__(
         self,
@@ -912,11 +915,9 @@ class SpectralMLPAutoencoder(L.LightningModule):
         x_normalized = (x - mean) / std  # [batch_size, seq_len]
         
         # Create std token
-        # Following your original approach, use log10(std) as the std token value
         std_token = torch.log10(std)  # [batch_size, 1]
         
         # Concatenate std token with normalized spectrum
-        # This is similar to your original approach of prepending the std
         x_with_std = torch.cat([std_token, x_normalized], dim=1)  # [batch_size, seq_len+1]
         
         return x_with_std

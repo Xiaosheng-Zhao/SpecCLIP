@@ -1,3 +1,20 @@
+# =============================================================================
+# SpecCLIP-split Pretraining Module
+# 
+# The SpecCLIP-split model combines:
+#   • contrastive loss,
+#   • reconstruction loss, and
+#   • cross-modal prediction loss,
+# to learn split (shared+non-shared) latent representations across modalities.
+# 
+# It uses modality-specific pre-trained encoders:
+#   • Gaia XP encoder: ordinary OAE-style reconstruction
+#   • LAMOST LRS encoder: masked-transformer objective
+#
+# Portions of this implementation are adapted from AstroCLIP
+# (Liam et al. 2024): https://github.com/waqarsyed/astroclip
+# =============================================================================
+
 import os
 import sys
 from typing import Tuple
@@ -7,15 +24,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#from dinov2.eval.setup import setup_and_build_model
 
 from ..modules import MLP, CrossAttentionHead
-#from .specformer import SpecFormer
 from .specformer_control import SpectralMLPAutoencoder_xp as SpecFormer_xp
 from .specformer_control import SpecFormerControl20_wstd as SpecFormer_lm
 
 from torch import Tensor
-
 
 class SpecClipModel_reconstruct_split_5122562_mlp_recordloss(L.LightningModule):
     def __init__(
@@ -397,13 +411,7 @@ class CrossModalDecoder(nn.Module):
     ):
         super().__init__()
         
-        # Calculate intermediate dimensions for smoother scaling
-        mid_dim = shared_dim * hidden_expansion  # 2048 or 384*4=1536
-        
-        # For LAMOST LRS (1462) path:
-        # 
-        # For Gaia XP (343) path:
-        # 
+        mid_dim = shared_dim * hidden_expansion  # 2048 
         
         if out_features > shared_dim:
             # Path for LAMOST LRS
@@ -609,7 +617,7 @@ class GaiaXPHead_split(nn.Module):
         # Initial projection
         self.shared_projection = nn.Linear(model_embed_dim, shared_embed_dim)
         # Feature transformation with precisely calculated parameter count
-        shared_intermediate_dim = 1160  # Carefully selected to match parameter count
+        shared_intermediate_dim = 1160
         self.shared_feature_mlp = nn.Sequential(
             nn.Linear(shared_embed_dim, shared_intermediate_dim),
             nn.LayerNorm(shared_intermediate_dim),
@@ -620,8 +628,7 @@ class GaiaXPHead_split(nn.Module):
         )
 
         self.private_projection = nn.Linear(model_embed_dim, private_embed_dim)
-        # Feature transformation with precisely calculated parameter count
-        private_intermediate_dim = 1160 #1160  # Carefully selected to match parameter count
+        private_intermediate_dim = 1160 
         self.private_feature_mlp = nn.Sequential(
             nn.Linear(private_embed_dim, private_intermediate_dim),
             nn.LayerNorm(private_intermediate_dim),
@@ -646,7 +653,6 @@ class GaiaXPHead_split(nn.Module):
     def forward(
         self, x: torch.tensor, return_weights: bool = False
     ):
-        # Use 'latent' instead of 'embedding'
         with torch.set_grad_enabled(not self.freeze_backbone):
             embedding = self.backbone(x)["latent"]
 
@@ -658,163 +664,6 @@ class GaiaXPHead_split(nn.Module):
         # Generate private representation
         private_x = self.private_projection(embedding)
         private_x = self.private_feature_mlp(private_x)
-        private_repr = private_x + self.private_mlp(private_x)
-
-        if return_weights:
-            return shared_repr.squeeze(), private_repr.squeeze(), shared_attn[1]
-        
-        return shared_repr.squeeze(), private_repr.squeeze()
-
-# With the correct number of parameters, where the final mlp has the 4*model_embed_dim (768) hidden dim
-class GaiaXPHead_split_2(nn.Module):
-    def __init__(
-        self,
-        model_path: str,
-        shared_embed_dim: int = 512,
-        private_embed_dim: int = 256,
-        n_head: int = 4,
-        model_embed_dim: int = 768,
-        dropout: float = 0.1,
-        freeze_backbone: bool = True,
-        load_pretrained_weights=True,
-    ):
-        super().__init__()
-        # Load the SpecFormer backbone for XP spectra
-        checkpoint = torch.load(model_path)
-        self.backbone = SpecFormer_xp(**checkpoint["hyper_parameters"])
-        if load_pretrained_weights:
-            self.backbone.load_state_dict(checkpoint["state_dict"])
-
-        # Freeze backbone if specified
-        self.freeze_backbone = freeze_backbone
-        if self.freeze_backbone:
-            for param in self.backbone.parameters():
-                param.requires_grad = False
-
-        # Initial projection
-        self.shared_projection = nn.Linear(model_embed_dim, shared_embed_dim)
-        # Feature transformation with precisely calculated parameter count
-        shared_intermediate_dim = 1160  # Carefully selected to match parameter count
-        self.shared_feature_mlp = nn.Sequential(
-            nn.Linear(shared_embed_dim, shared_intermediate_dim),
-            nn.LayerNorm(shared_intermediate_dim),
-            nn.GELU(),
-            nn.Linear(shared_intermediate_dim, shared_embed_dim),
-            nn.LayerNorm(shared_embed_dim),
-            nn.Dropout(dropout)
-        )
-
-        self.private_projection = nn.Linear(model_embed_dim, private_embed_dim)
-        # Feature transformation with precisely calculated parameter count
-        private_intermediate_dim = 1160 #1160  # Carefully selected to match parameter count
-        self.private_feature_mlp = nn.Sequential(
-            nn.Linear(private_embed_dim, private_intermediate_dim),
-            nn.LayerNorm(private_intermediate_dim),
-            nn.GELU(),
-            nn.Linear(private_intermediate_dim, private_embed_dim),
-            nn.LayerNorm(private_embed_dim),
-            nn.Dropout(dropout)
-        )
-
-        self.shared_mlp = MLP(
-            in_features=shared_embed_dim,
-            hidden_features=4 * model_embed_dim,
-            dropout=dropout,
-        )
-
-        self.private_mlp = MLP(
-            in_features=private_embed_dim,
-            hidden_features=4 * model_embed_dim,
-            dropout=dropout,
-        )
-
-    def forward(
-        self, x: torch.tensor, return_weights: bool = False
-    ):
-        # Use 'latent' instead of 'embedding'
-        with torch.set_grad_enabled(not self.freeze_backbone):
-            embedding = self.backbone(x)["latent"]
-
-        # Generate shared representation
-        shared_x = self.shared_projection(embedding)
-        shared_x = self.shared_feature_mlp(shared_x)
-        shared_repr = shared_x + self.shared_mlp(shared_x)
-
-        # Generate private representation
-        private_x = self.private_projection(embedding)
-        private_x = self.private_feature_mlp(private_x)
-        private_repr = private_x + self.private_mlp(private_x)
-
-        if return_weights:
-            return shared_repr.squeeze(), private_repr.squeeze(), shared_attn[1]
-        
-        return shared_repr.squeeze(), private_repr.squeeze()
-
-
-class LamostLRSHead_split_2(nn.Module):
-    def __init__(
-        self,
-        model_path: str,
-        shared_embed_dim: int = 512,
-        private_embed_dim: int = 256,
-        n_head: int = 4,
-        model_embed_dim: int = 768,
-        dropout: float = 0.1,
-        freeze_backbone: bool = True,
-        load_pretrained_weights=True,
-    ):
-        super().__init__()
-        # Load the SpecFormer backbone
-        checkpoint = torch.load(model_path)
-        self.backbone = SpecFormer_lm(**checkpoint["hyper_parameters"])
-        if load_pretrained_weights:
-            self.backbone.load_state_dict(checkpoint["state_dict"])
-
-        # Freeze backbone if specified
-        self.freeze_backbone = freeze_backbone
-        if self.freeze_backbone:
-            for param in self.backbone.parameters():
-                param.requires_grad = False
-
-        # Shared representation path
-        self.shared_attention = CrossAttentionHead(
-            embed_dim=shared_embed_dim,
-            n_head=n_head,
-            model_embed_dim=model_embed_dim,
-            dropout=dropout,
-        )
-        self.shared_mlp = MLP(
-            in_features=shared_embed_dim,
-            hidden_features=4 * model_embed_dim,
-            dropout=dropout,
-        )
-
-        # Private representation path
-        self.private_attention = CrossAttentionHead(
-            embed_dim=private_embed_dim,
-            n_head=n_head//2,  # Reduced heads for private path
-            model_embed_dim=model_embed_dim,
-            dropout=dropout,
-        )
-        self.private_mlp = MLP(
-            in_features=private_embed_dim,
-            hidden_features=4 * model_embed_dim,
-            dropout=dropout,
-        )
-
-    def forward(
-        self, x: torch.tensor, return_weights: bool = False
-    ):
-        # Get backbone features
-        with torch.set_grad_enabled(not self.freeze_backbone):
-            embedding = self.backbone(x)["embedding"]
-
-        # Generate shared representation
-        shared_x, shared_attn = self.shared_attention(embedding)
-        shared_repr = shared_x + self.shared_mlp(shared_x)
-
-        # Generate private representation
-        private_x, private_attn = self.private_attention(embedding)
         private_repr = private_x + self.private_mlp(private_x)
 
         if return_weights:

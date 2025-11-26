@@ -1,3 +1,6 @@
+# Adapted from AstroCLIP (Liam et al. 2024).
+# Original code available at: https://github.com/PolymathicAI/AstroCLIP
+
 import math
 
 import torch

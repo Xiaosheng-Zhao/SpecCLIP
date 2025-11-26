@@ -1,13 +1,13 @@
 seed_everything: 42
 trainer:
-  default_root_dir: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs"
+  default_root_dir: "{SPECCLIP_ROOT}/outputs"
   enable_checkpointing: true
   gradient_clip_val: 1.
-  max_steps: 1960000 #980000 8 #122500 64 #1960000 4
+  max_steps: 1960000 
   precision: 32
   limit_val_batches: 100
-  accelerator: 'gpu' #new
-  devices: 2 #new
+  accelerator: 'gpu' 
+  devices: 4 
   strategy: 'ddp'
   num_nodes: 1
   log_every_n_steps: 1000
@@ -22,7 +22,6 @@ trainer:
         monitor: "val_epoch_loss"
         mode: "min"
         filename: "{epoch}-{val_loss:.4f}"
-    # Add this new callback for saving at specific epoch
     - class_path: ModelCheckpoint
       init_args:
         save_top_k: 1
@@ -41,13 +40,13 @@ trainer:
         check_finite: True
     - class_path: EpochLossCallback
       init_args:
-        log_train_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/training_loss_xp_1_stats_ae4_oldflux_nodrop_191.txt"
-        log_val_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/validation_loss_xp_1_stats_ae4_oldflux_nodrop_191.txt"
+        log_train_path: "{SPECCLIP_ROOT}/outputs/training_loss_xp_oae.txt"
+        log_val_path: "{SPECCLIP_ROOT}/outputs/validation_loss_xp_oae.txt"
   
   logger:
     class_path: CustomWandbLogger
     init_args:
-      project: "astroclip-spectrum"
+      project: "gaia-xp-oae"
       entity: "{WANDB_ENTITY_NAME}"
       save_dir: ${trainer.default_root_dir}
       
@@ -56,23 +55,20 @@ model:
   init_args:
     input_dim: 1
     seq_len: 343
-    hidden_dim: 1290  # Adjusted to reach ~42.7M params
+    hidden_dim: 1290 
     bottleneck_dim: 768
     num_encoder_blocks: 2
     num_decoder_blocks: 2
     expansion_factor: 3
     use_masking: false
-    mask_ratio: 0.15
-    mask_chunk_width: 20
     dropout: 0.0
-    mask_num_chunks: 6
     
 data:
   class_path: SpectrumDataloader
   init_args:
-    path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/shared/gaia_spectra_subsample_100.h5"
-    batch_size: 32
-    num_workers: 4
+    path: "{SPECCLIP_ROOT}/data/gaia_spectra_subsample_100.h5"
+    batch_size: 64
+    num_workers: 32
     
 optimizer:
   class_path: torch.optim.adamw.AdamW
@@ -87,5 +83,5 @@ lr_scheduler:
   class_path: CosineAnnealingWithWarmupLR
   init_args:
     T_max: ${trainer.max_steps}
-    T_warmup: 19520 #9760 8 #19520 4 
+    T_warmup: 19520 
     eta_min: ${eval:'${optimizer.init_args.lr}//100'}

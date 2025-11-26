@@ -1,3 +1,6 @@
+"""
+Functions for Gaia XP stellar parameter estimation
+"""
 import os
 import torch
 import numpy as np

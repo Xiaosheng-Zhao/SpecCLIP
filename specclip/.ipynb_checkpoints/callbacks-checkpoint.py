@@ -1,3 +1,7 @@
+# This implementation is adapted from the AstroCLIP framework
+# (Liam et al. 2024), with modifications specific to SpecCLIP.
+# Original AstroCLIP code: https://github.com/PolymathicAI/AstroCLIP
+
 from typing import Any, Dict, Optional,Union
 import matplotlib.pyplot as plt
 import wandb
@@ -142,7 +146,6 @@ class CustomEarlyStopping(EarlyStopping):
         logs = trainer.callback_metrics
         return logs.get(self.monitor) if logs else None
 
-# Rest of the code remains unchanged
 class CustomWandbLogger(WandbLogger):
     """Enhanced WandB logger with improved handling of hyperparameters"""
     def __init__(self, *args, **kwargs):

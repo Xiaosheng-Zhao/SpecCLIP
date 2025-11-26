@@ -1,20 +1,18 @@
 seed_everything: 42
 trainer:
-  default_root_dir: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs"
+  default_root_dir: "{SPECCLIP_ROOT}/outputs"
   enable_checkpointing: true
   gradient_clip_val: 1.
-  max_epochs: 750 #10
-  #max_steps: 122500 #500000 #5000 #500_000
-  precision: 32 #null
-  #limit_val_batches: 100
-  accelerator: 'gpu' #new
-  devices: 2 #new
+  max_epochs: 750 
+  precision: 32 
+  accelerator: 'gpu' 
+  devices: 8
   strategy: 'ddp'
   num_nodes: 1
   logger:
     class_path: CustomWandbLogger
     init_args:
-      project: "astroclip-spectrum"
+      project: "specclip-split"
       entity: "{WANDB_ENTITY_NAME}"
       save_dir: ${trainer.default_root_dir}
   callbacks:
@@ -23,7 +21,7 @@ trainer:
         logging_interval: "step"
     - class_path: ModelCheckpoint
       init_args:
-        save_last: True #link
+        save_last: True 
         save_top_k: 1
         monitor: "val_epoch_loss"
         mode: "min"
@@ -32,7 +30,7 @@ trainer:
       init_args:
         epochs_to_save: [110]
         filename: "specific-epoch-{epoch:03d}-val_loss={val_loss:.4f}.ckpt"
-        dirpath: /mnt/tianwen-course/tianwen/home/zxs/tianqin/astroclip/outputs/aeclip_checkpoints_lrs_epoch_split512256_recordloss_equalw/
+        dirpath: "{SPECCLIP_ROOT}/specclip-split-specific"
     - class_path: CustomEarlyStopping
       init_args:
         monitor: "val_epoch_loss"
@@ -43,8 +41,8 @@ trainer:
         check_finite: True
     - class_path: EpochLossCallback
       init_args:
-        log_train_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/training_loss_clip_100w_recon_1node_correct_private_5122562_mlp_recordloss_equalw.txt"
-        log_val_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/validation_loss_clip_100w_recon_1node_correct_private_5122562_mlp_recordloss_equalw.txt"
+        log_train_path: "{SPECCLIP_ROOT}/outputs/training_loss_specclip_split.txt"
+        log_val_path: "{SPECCLIP_ROOT}/outputs/validation_loss_specclip_split.txt"
 model:
   class_path: SpecClipModel_reconstruct_split_5122562_mlp_recordloss
   init_args:
@@ -52,28 +50,28 @@ model:
     gaia_xp_encoder:
       class_path: specclip.models.specclip_reconstruct_split_5122562_mlp_recordloss.GaiaXPHead_split
       init_args:
-        model_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs/astroclip-spectrum/utv0iyih/checkpoints/last.ckpt"
+        model_path: "{SPECCLIP_ROOT}/outputs/specclip-split/utv0iyih/checkpoints/last.ckpt"
 
     lamost_lrs_encoder:
       class_path: specclip.models.specclip_reconstruct_split_5122562_mlp_recordloss.LamostLRSHead_split
       init_args:
-        model_path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP/outputs/astroclip-spectrum/rk1nxezc/checkpoints/last.ckpt"
+        model_path: "{SPECCLIP_ROOT}/outputs/specclip-split/rk1nxezc/checkpoints/last.ckpt"
     reconstruction_weight: 1.0
     cross_modal_weight: 1.0
 data:
   class_path: SpecClipDataloader
   init_args:
-    path: "/home/idies/workspace/Storage/xzhao/DESI-workspace/shared/gaia_lamost_split_subsample_1024.h5"
-    batch_size: 64
+    path: "{SPECCLIP_ROOT}/data/gaia_lamost_split_subsample_1024.h5"
+    batch_size: 1024
     num_workers: 32
 optimizer:
   class_path: torch.optim.adamw.AdamW
   init_args:
-    lr: 1e-4 #1e-5
-    weight_decay: 0.05 #1e-1
+    lr: 1e-4 
+    weight_decay: 0.05 
 lr_scheduler:
   class_path: CosineAnnealingWithWarmupLR
   init_args:
     T_max: 10000
-    T_warmup: 1000 # 2000 #200 #2000
+    T_warmup: 1000 
     eta_min: ${eval:'${optimizer.init_args.lr}//100'}

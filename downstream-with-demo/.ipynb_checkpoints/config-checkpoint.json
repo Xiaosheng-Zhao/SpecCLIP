@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "description": "Stellar Foundation Models - Parameter Estimation and Cross-Modal Retrieval",
+  "description": "SpecCLIP: Aligning and Translating Spectroscopic Measurements for Stars",
   "founation_models": {
     "encoders": {
       "xp_encoder": {

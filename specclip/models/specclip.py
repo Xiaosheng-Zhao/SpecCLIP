@@ -1,3 +1,18 @@
+# =============================================================================
+# SpecCLIP-base Pretraining Module
+# 
+# The SpecCLIP-base model contains only:
+#   • contrastive loss,
+# to learn a shared latent representations across modalities.
+# 
+# It uses modality-specific pre-trained encoders:
+#   • Gaia XP encoder: masked-transformer objective
+#   • LAMOST LRS encoder: masked-transformer objective
+#
+# Portions of this implementation are adapted from AstroCLIP
+# (Liam et al. 2024): https://github.com/waqarsyed/astroclip
+# =============================================================================
+
 import os
 import sys
 from typing import Tuple
@@ -111,7 +126,6 @@ class SpecClipModel(L.LightningModule):
             # Determine if the first element is a dictionary or a tensor
             if isinstance(outputs[0], dict):
                 # Handle the case where outputs are dictionaries
-                # Assuming the key for the loss tensor is 'loss'
                 losses = [x['loss'] for x in outputs if 'loss' in x]
                 avg_train_loss = torch.stack(losses).mean()
             elif isinstance(outputs[0], torch.Tensor):
@@ -151,7 +165,6 @@ class SpecClipModel(L.LightningModule):
         return val_loss_withlogit
 
     def validation_epoch_end(self, outputs):
-        # Aggregate or directly use your validation loss
         if outputs:
             if isinstance(outputs[0], dict):
                 losses = [x['val_loss'] for x in outputs if 'val_loss' in x]

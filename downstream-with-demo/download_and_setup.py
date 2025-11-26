@@ -26,7 +26,7 @@ def download_all_models(use_snapshot=True, include_test_data=False):
     print(f"Local directory: {LOCAL_MODEL_DIR}")
 
     if include_test_data:
-        print("\n⚠️  Test data will be downloaded (~500 MB)")
+        print("\n⚠️  Test data will be downloaded (~10 MB)")
         #print("   This may take several minutes depending on your connection.")
 
     # Download models (test data comes from separate repo)
@@ -190,7 +190,7 @@ def main():
     parser.add_argument(
         "--include-test-data",
         action="store_true",
-        help="Download test data (~500 MB, required for retrieval)"
+        help="Download test data (~10 MB, required for retrieval)"
     )
     parser.add_argument(
         "--test-data-only",
