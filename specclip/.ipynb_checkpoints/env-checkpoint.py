@@ -12,8 +12,6 @@ from dotenv import dotenv_values
 
 WARN_ONCE = True
 
-
-# TODO: change here the defaults
 # These are fallback values if no .env file is found
 SPECCLIP_ROOT = "/home/idies/workspace/Storage/xzhao/DESI-workspace/xzhao/SpecCLIP"
 WANDB_ENTITY_NAME = "specclip-model-variant"
