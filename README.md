@@ -206,8 +206,7 @@ If you use SpecCLIP in your research, please cite:
 
 ## 🪐 Acknowledgments
 
-We acknowledge the open-source [AstroCLIP](https://github.com/PolymathicAI/AstroCLIP) code base, upon which this project is largely built. This project was initiated while X.Z. was visiting the **University of Chinese Academy of Sciences** and **National Astronomical Observatories, Chinese Academy of Sciences**, with support from **Zhejiang Lab**.
-Subsequent work was supported by **Johns Hopkins University** (through the generosity of Eric and Wendy Schmidt, via the **Schmidt Sciences program**), the **Institute for Data Intensive Engineering and Science (IDIES)**, and the **Subaru Prime Focus Spectrograph (PFS) Galactic Archaeology collaboration**.
+We acknowledge the open-source [AstroCLIP](https://github.com/PolymathicAI/AstroCLIP) code base, upon which this project is largely built. 
 
 ---
 
