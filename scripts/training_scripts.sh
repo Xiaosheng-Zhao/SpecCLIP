@@ -20,5 +20,5 @@ WANDB_MODE=online torchrun --nproc_per_node=8 specclip/trainer.py fit -c ./confi
 # 6a. specclip-split model: contrastive loss + reconstruction loss + prediction loss, using split (shared+non-shared) embedding vectors for each modality.
 WANDB_MODE=online torchrun --nproc_per_node=8 specclip/trainer.py fit -c ./config/specclip_split_lrs_mt_xp_oae.yaml
 
-# 6b. specclip-split model: contrastive loss + reconstruction loss + prediction loss, using split (shared+non-shared) embedding vectors for each modality. w/ wandb
+# 6b. specclip-split model: contrastive loss + reconstruction loss + prediction loss, using split (shared+non-shared) embedding vectors for each modality. 
 WANDB_MODE=online torchrun --nproc_per_node=8 specclip/trainer.py fit -c ./config/specclip_split_lrs_mt_xp_oae.yaml
