@@ -29,8 +29,8 @@
 
 #### 1. Create and activate a new conda environment:
 ```bash
-conda create -n astro-ai python=3.10
-conda activate astro-ai
+conda create -n specclip-ai python=3.10
+conda activate specclip-ai
 ```
 
 #### 2. Install PyTorch (CUDA 11.8 build)
