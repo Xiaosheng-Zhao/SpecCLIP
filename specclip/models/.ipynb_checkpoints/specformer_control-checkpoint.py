@@ -1,5 +1,5 @@
 # =============================================================================
-# SpecCLIP Pretraining Module
+# SpecCLIP Modality-Specific Pretraining Module
 # 
 # This script defines the core classes used for pretraining Gaia XP and 
 # LAMOST LRS encoders with:
