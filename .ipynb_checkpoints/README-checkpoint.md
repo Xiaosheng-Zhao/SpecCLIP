@@ -196,12 +196,15 @@ If you use **SpecCLIP** in your research, please cite both the paper and the sof
   primaryClass  = {astro-ph.IM}
 }
 
-@software{Zhao2025SpecCLIPSoftware,
-  author       = {Zhao, Xiaosheng and others},
-  title        = {SpecCLIP: A Foundation Model for Stellar Spectroscopy},
-  version      = {1.0.0},
+@software{xiaosheng_zhao_2025_17717920,
+  author       = {Xiaosheng Zhao},
+  title        = {SpecCLIP: Aligning and Translating Spectroscopic Measurements for Stars},
+  month        = nov,
+  year         = 2025,
+  publisher    = {Zenodo},
+  version      = {v0.9.0},
   doi          = {10.5281/zenodo.17717920},
-  url          = {https://doi.org/10.xxxx/zenodo.17717920}
+  url          = {https://doi.org/10.5281/zenodo.17717920},
 }
 ```
 ---
