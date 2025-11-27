@@ -18,7 +18,7 @@
 **Down-Stream Tasks Overview**
 
 <p align="center">
-    <img width="750" src="./img/analysis_cards.gif"/>
+    <img width="750" src="./img/SpecCLIP_model_with_analysis_card.png"/>
 </p>
 ---
 

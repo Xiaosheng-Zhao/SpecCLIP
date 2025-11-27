@@ -383,7 +383,7 @@ def load_spectrum_data(file_path: str) -> Tuple[np.ndarray, np.ndarray]:
 
 def interpolate_spectrum(wavelength: np.ndarray,
                         flux: np.ndarray,
-                        new_wavelength_range: List[float] = [4000, 5600],
+                        new_wavelength_range: List[float] = [4000, 5598],
                         num_points: int = 1000) -> Tuple[np.ndarray, np.ndarray]:
     """Interpolate spectrum onto a logarithmically-spaced wavelength grid.
     
