@@ -74,7 +74,7 @@ WANDB_ENTITY_NAME="your_wandb_entity"
 ---
 
 ## 🪄 Usage Examples
-
+See the full demo here: [Full Demo](./downstream-with-demo/demo_download_v0.ipynb)
 ### Download model and data at once
 ```bash
 !pip install -q huggingface_hub
