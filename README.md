@@ -181,7 +181,7 @@ retriever.plot_retrieval_results(
 
 ## Citation
 
-If you use **SpecCLIP** in your research, please cite both the paper and the software:
+If you use **SpecCLIP** in your research, please cite the paper:
 
 ```bibtex
 @ARTICLE{2025arXiv250701939Z,
