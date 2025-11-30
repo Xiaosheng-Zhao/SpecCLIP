@@ -54,7 +54,7 @@ pip install -e .
 
 ## Pretrained Models
 
-| Model                | Description                                          | Embedding Dim | Params | Link                                                                       | Configs | 
+| Model                | Description                                          | Embedding Dim | Param | Link                                                                       | Config | 
 | -------------------- | ---------------------------------------------------- | ------------- | -------------------------------------------------------------------------- | ------------------------- |-------- |
 | `SpecCLIP-LRS`      | LAMOST LRS masked transformer    | 768           |43M | [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/encoders/lrs_encoder.ckpt) | [config](./config/specformer_lrs_mt.yaml) | 
 | `SpecCLIP-XP` | Gaia XP  masked transformer  | 768           |43M | [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/encoders/xp_encoder.ckpt) | [config](./config/specformer_xp_mt.yaml) | 
