@@ -14,7 +14,7 @@
 - Translate between different spectroscopic surveys (LAMOST ⟷ Gaia XP)
 - Retrieve similar stars from both LAMOST LRS spectra and Gaia XP spectra
 
-**Model Architecture and Down-Stream Tasks Overview**
+**Model Architecture and Down-Stream Tasks Overview (click for full image)**
 
 <p align="center">
     <img width="1000" src="./img/SpecCLIP_model_with_analysis_card.png"/>
