@@ -78,8 +78,10 @@ See the full demo here: [Full Demo](./downstream-with-demo/demo_download_v0.ipyn
 ```bash
 !pip install -q huggingface_hub
 from huggingface_hub import login
-print("  1. Run in terminal: huggingface-cli login")
-print("  2. Set the LOCAL_MODEL_DIR: LOCAL_MODEL_DIR='your_local_model_path'")
+
+# Run in terminal to login huggingface: huggingface-cli login
+
+# Set the path of LOCAL_MODEL_DIR in download_and_setup.py and download model/test data
 !python download_and_setup.py 
 ```
 ### Parameter Prediction
@@ -88,25 +90,22 @@ Predict stellar parameters from any input spectrum:
 ```python
 import json
 from stellar_params_unified import UnifiedStellarParameterPredictor
-from spectral_retrieval import SpectralRetriever
 from IPython.display import display
 
 # Configuration
 with open('config_lrs.json', 'r') as f:
     lrs_config = json.load(f)
-
-# Initialize for LAMOST LRS
 predictor_lrs = UnifiedStellarParameterPredictor(survey_type='LAMOST_LRS', lrs_config=lrs_config)
 
 # Predict All Parameters from LAMOST LRS
 results_lrs_all = predictor_lrs.predict(
-    './Foundation_LRS/test_data/sample1_matrix.fits',
+    './test_data/lrs/sample1_matrix.fits',
     parameter_types=['all'],
     simple_header=False,
     display_format='row'
 )
 
-# Display with formatted style
+# Display
 display(predictor_lrs.display_results(results_lrs_all, style='formatted'))
 
 ```
@@ -118,26 +117,14 @@ Predict Gaia XP spectrum:
 import json
 from spectral_retrieval import SpectralRetriever
 from predict_lrs_wclip_v0 import load_spectrum_data
-from predict_xp_wclip_v0 import load_spectrum_data as load_spectrum_data_xp
-
-# Download est data only
-!python download_and_setup.py --test-data-only
 
 # Configuration
 with open('config_retrieval.json', 'r') as f:
     config = json.load(f)
-
-# Initialize retriever
 retriever = SpectralRetriever(**config)
 
-# Build embedding database from test data
-retriever.build_embedding_database(batch_size=1000, save_path='./test_embeddings.npz')
-
-# Load pre-built embedding
-retriever.load_embeddings('./test_embeddings.npz')
-
 # Load the external spectra data
-wavelength, flux = load_spectrum_data('./test_data/sample1_matrix.fits')
+wavelength, flux = load_spectrum_data('./test_data/lrs/sample1_matrix.fits')
 
 # Predict corresponding Gaia XP spectrum
 prediction_external = retriever.predict_cross_modal(
@@ -145,6 +132,7 @@ prediction_external = retriever.predict_cross_modal(
     query_type='lamost_spectra'
 )
 
+# Plot
 retriever.plot_cross_modal_prediction(
     prediction_external,
     save_path='./plots/external_lamost_to_gaia_prediction.png'
@@ -156,8 +144,14 @@ retriever.plot_cross_modal_prediction(
 
 Find the top-4 most similar stars from Gaia XP catalog:
 ```python
+# Download test data only
+!python download_and_setup.py --test-data-only
+
+# Build embedding database from test data
+retriever.build_embedding_database(batch_size=1000, save_path='./test_embeddings.npz')
+
 # Load external LAMOST spectrum
-wavelength, flux = load_spectrum_data('./test_data/sample1_matrix.fits')
+wavelength, flux = load_spectrum_data('./test_data/lrs/sample1_matrix.fits')
 
 # Find similar Gaia XP spectra
 results_external_cross = retriever.find_similar_spectra(
@@ -167,14 +161,12 @@ results_external_cross = retriever.find_similar_spectra(
     top_k=4
 )
 
-print("Cross-modal retrieval: LAMOST → Gaia XP")
-print(f"Top {len(results_external_cross['top_spectra'])} Gaia matches found")
-print(f"Scores: {results_external_cross['top_scores']}")
-
+# Plot
 retriever.plot_retrieval_results(
     results_external_cross,
     save_path='./plots/external_lamost_to_gaia_cross.png'
 )
+
 ```
 
 ---
