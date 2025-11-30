@@ -3,7 +3,6 @@
 [![Hugging Face](https://img.shields.io/badge/🤗%20Model-SpecCLIP-yellow)](https://huggingface.co/astroshawn/SpecCLIP/)
 [![arXiv](https://img.shields.io/badge/arXiv-2507.01939-b31b1b.svg)](https://arxiv.org/abs/2507.01939)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17717920.svg)](https://doi.org/10.5281/zenodo.17717920)
 
 **A contrastive learning + domain-specific information preservation foundation model for cross-survey stellar spectroscopy**
 
@@ -23,7 +22,7 @@
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -53,7 +52,7 @@ pip install -e .
 
 ---
 
-## 🧠 Pretrained Models
+## Pretrained Models
 
 | Model                | Description                                          | Embedding Dim | Link                                                                       |
 | -------------------- | ---------------------------------------------------- | ------------- | -------------------------------------------------------------------------- |
@@ -73,7 +72,7 @@ WANDB_ENTITY_NAME="your_wandb_entity"
 
 ---
 
-## 🪄 Usage Examples
+## Usage Examples
 See the full demo here: [Full Demo](./downstream-with-demo/demo_download_v0.ipynb)
 ### Download model and data at once
 ```bash
@@ -180,42 +179,38 @@ retriever.plot_retrieval_results(
 
 ---
 
-## 📊 Citation
+## Citation
 
 If you use **SpecCLIP** in your research, please cite both the paper and the software:
 
 ```bibtex
-@article{Zhao2025SpecCLIP,
-  author        = {Zhao, Xiaosheng and others},
-  title         = {SpecCLIP: Aligning and Translating Spectroscopic Measurements for Stars},
-  journal       = {arXiv e-prints},
-  year          = {2025},
-  eprint        = {2507.01939},
-  doi           = {10.48550/arXiv.250701939},
-  archivePrefix = {arXiv},
-  primaryClass  = {astro-ph.IM}
-}
-
-@software{xiaosheng_zhao_2025_17717920,
-  author       = {Xiaosheng Zhao},
-  title        = {SpecCLIP: Aligning and Translating Spectroscopic Measurements for Stars},
-  month        = nov,
-  year         = 2025,
-  publisher    = {Zenodo},
-  version      = {v0.9.0},
-  doi          = {10.5281/zenodo.17717920},
-  url          = {https://doi.org/10.5281/zenodo.17717920},
+@ARTICLE{2025arXiv250701939Z,
+       author = {{Zhao}, Xiaosheng and {Huang}, Yang and {Xue}, Guirong and {Kong}, Xiao and
+                 {Liu}, Jifeng and {Tang}, Xiaoyu and {Beers}, Timothy C. and
+                 {Ting}, Yuan-Sen and {Luo}, A-Li},
+        title = "{SpecCLIP: Aligning and Translating Spectroscopic Measurements for Stars}",
+      journal = {arXiv e-prints},
+     keywords = {Instrumentation and Methods for Astrophysics, Solar and Stellar Astrophysics,
+                 Artificial Intelligence, Machine Learning},
+         year = 2025,
+        month = jul,
+          eid = {arXiv:2507.01939},
+        pages = {arXiv:2507.01939},
+          doi = {10.48550/arXiv.2507.01939},
+archivePrefix = {arXiv},
+       eprint = {2507.01939},
+ primaryClass = {astro-ph.IM},
 }
 ```
 ---
 
-## 🪐 Acknowledgments
+## Acknowledgments
 
 We acknowledge the open-source [AstroCLIP](https://github.com/PolymathicAI/AstroCLIP) code base, upon which this project is largely built. 
 
 ---
 
-## 📬 Contact & Support
+## Contact & Support
 
 - **Issues:** [GitHub Issues](https://github.com/Xiaosheng-Zhao/SpecCLIP/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/Xiaosheng-Zhao/SpecCLIP/discussions)
