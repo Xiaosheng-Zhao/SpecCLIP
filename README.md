@@ -112,7 +112,7 @@ display(predictor_lrs.display_results(results_lrs_all, style='formatted'))
 
 ### Spectral Translation
 
-Predict Gaia XP spectrum:
+Predict Gaia XP spectrum from LAMOST LRS:
 ```python
 import json
 from spectral_retrieval import SpectralRetriever
