@@ -215,5 +215,3 @@ We acknowledge the open-source [AstroCLIP](https://github.com/PolymathicAI/Astro
 - **Issues:** [GitHub Issues](https://github.com/Xiaosheng-Zhao/SpecCLIP/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/Xiaosheng-Zhao/SpecCLIP/discussions)
 - **Email:** [xzhao113@jh.edu]
-
-**Star ⭐ this repo if you find it useful!**
