@@ -10,9 +10,9 @@
 > It learns a *general-purpose spectral representation* that enables **parameter estimation**, **spectral translation**, and **similarity retrieval** across different spectroscopic surveys.
 
 **Key Capabilities:**
-- 🎯 Predict stellar parameters (T_eff, log g, [Fe/H], RV, varied chemical abundances, extinction, etc.) from LAMOST LRS and Gaia XP spectrum
-- 🔄 Translate between different spectroscopic surveys (LAMOST ⟷ Gaia XP)
-- 🔍 Retrieve similar stars from both LAMOST LRS spectra and Gaia XP spectra
+- Predict stellar parameters (T_eff, log g, [Fe/H], RV, varied chemical abundances, extinction, etc.) from LAMOST LRS and Gaia XP spectrum
+- Translate between different spectroscopic surveys (LAMOST ⟷ Gaia XP)
+- Retrieve similar stars from both LAMOST LRS spectra and Gaia XP spectra
 
 **Model Architecture and Down-Stream Tasks Overview**
 
