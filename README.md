@@ -59,8 +59,8 @@ pip install -e .
 | `SpecCLIP-LRS`      | LAMOST LRS masked transformer    | 768           |43M | [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/encoders/lrs_encoder.ckpt) | [config](./config/specformer_lrs_mt.yaml) | 
 | `SpecCLIP-XP` | Gaia XP  masked transformer  | 768           |43M | [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/encoders/xp_encoder.ckpt) | [config](./config/specformer_xp_mt.yaml) | 
 | `SpecCLIP-XP-oae` | Gaia XP  ordinary auto-encoder  | 768           |43M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/encoders/xp_encoder_mlp.ckpt) |[config](./config/specformer_xp_oae.yaml) | 
-| `SpecCLIP-CLIP-pr` | Gaia XP  ⟷ LAMOST contrastive +pred+recon  | 768           |168M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_predrecon_mlp.ckpt) |[config](./config/specclip_pr_lrs_mt_xp_oae.yaml) |
-| `SpecCLIP-CLIP-split` | Gaia XP  ⟷ LAMOST contrastive+(pred+recon-split)    | 768           |126M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_split_mlp.ckpt) |[config](./config/specclip_split_lrs_mt_xp_oae.yaml) |
+| `SpecCLIP-pr` | Gaia XP  ⟷ LAMOST contrastive +pred+recon  | 768           |168M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_predrecon_mlp.ckpt) |[config](./config/specclip_pr_lrs_mt_xp_oae.yaml) |
+| `SpecCLIP-split` | Gaia XP  ⟷ LAMOST contrastive+(pred+recon-split)    | 768           |126M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_split_mlp.ckpt) |[config](./config/specclip_split_lrs_mt_xp_oae.yaml) |
 
 **Examples of training with your own data:**  
 Refer to the `scripts/` directory. Before running any training script, create a `.env` file inside the `specclip/` folder and include:
