@@ -59,6 +59,7 @@ pip install -e .
 | `SpecCLIP-LRS`      | LAMOST LRS masked transformer    | 768           |43M | [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/encoders/lrs_encoder.ckpt) | [config](./config/specformer_lrs_mt.yaml) | 
 | `SpecCLIP-XP` | Gaia XP  masked transformer  | 768           |43M | [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/encoders/xp_encoder.ckpt) | [config](./config/specformer_xp_mt.yaml) | 
 | `SpecCLIP-XP-oae` | Gaia XP  ordinary auto-encoder  | 768           |43M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/encoders/xp_encoder_mlp.ckpt) |[config](./config/specformer_xp_oae.yaml) | 
+| `SpecCLIP-base` | Gaia XP  ⟷ LAMOST contrastive  | 768           |100M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_base.ckpt) |[config](./config/specclip_base_lrs_mt_xp_oae.yaml) |
 | `SpecCLIP-pr` | Gaia XP  ⟷ LAMOST contrastive +pred+recon  | 768           |168M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_predrecon_mlp.ckpt) |[config](./config/specclip_pr_lrs_mt_xp_oae.yaml) |
 | `SpecCLIP-split` | Gaia XP  ⟷ LAMOST contrastive+(pred+recon-split)    | 768           |126M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_split_mlp.ckpt) |[config](./config/specclip_split_lrs_mt_xp_oae.yaml) |
 
