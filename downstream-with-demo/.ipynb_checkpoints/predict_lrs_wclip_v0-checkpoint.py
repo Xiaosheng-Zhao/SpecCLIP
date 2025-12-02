@@ -19,7 +19,6 @@ from astropy.io import fits
 from scipy.signal import medfilt, savgol_filter
 
 # For clip results
-#from specclip.models import SpecClipModel, GaiaXPHead, LamostLRSHead
 from specclip.models import SpecClipModel_reconstruct_embed768_mlp as SpecClipModel
 from specclip.models.specclip_reconstruct_embed768_mlp import GaiaXPHeadWithMLP as GaiaXPHead
 from specclip.models.specclip_reconstruct_embed768_mlp import LamostLRSHead
@@ -239,6 +238,7 @@ def gaspp_fitcont2(ww, ff, cfsnr=60):
     orflx : ndarray
         Original flux array.
     """
+
     # Keep a copy of the original flux
     orflx = ff.copy()
 

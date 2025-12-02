@@ -1,7 +1,6 @@
 {
-  "specclip_predrecon_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new/specclip/specclip_model_predrecon_mlp.ckpt",
-  "specclip_split_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new/specclip/specclip_model_split_mlp.ckpt",
-  "xp_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new/encoders/xp_encoder_mlp.ckpt",
-  "lrs_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new/encoders/lrs_encoder.ckpt",
-  "h5_data_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new/test_data/gaia_lamost_test_only.h5"
+  "specclip_predrecon_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new2/specclip/specclip_model_predrecon_mlp.ckpt",
+  "specclip_split_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new2/specclip/specclip_model_split_mlp.ckpt",
+  "xp_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new2/encoders/xp_encoder_mlp.ckpt",
+  "lrs_encoder_path": "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new2/encoders/lrs_encoder.ckpt"
 }

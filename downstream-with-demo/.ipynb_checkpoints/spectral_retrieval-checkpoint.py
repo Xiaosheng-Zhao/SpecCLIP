@@ -35,9 +35,7 @@ from scipy.signal import medfilt, savgol_filter
 def gaspp_fitcont2(ww, ff, cfsnr=60):
     """
     Fit continuum over 3850 - 9000 A region.
-    (Copy the entire function from stellar_params_lrs.py)
     """
-    # Keep a copy of the original flux
     orflx = ff.copy()
     ff = ff.astype(np.float64)
     ff = medfilt(ff, kernel_size=7)
@@ -995,7 +993,6 @@ class SpectralRetriever:
                   bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.3))
 
             else:
-                # For Gaia XP: Keep original layout (can split into 2-3 columns)
                 n_params = len(param_table_data)
                 n_cols = 2
                 n_per_col = (n_params + n_cols - 1) // n_cols
