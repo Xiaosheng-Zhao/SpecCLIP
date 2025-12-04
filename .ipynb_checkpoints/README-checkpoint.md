@@ -175,7 +175,7 @@ archivePrefix = {arXiv},
 
 ## Acknowledgments
 
-We acknowledge the open-source [AstroCLIP](https://github.com/PolymathicAI/AstroCLIP) code base, upon which this project is largely built. 
+We acknowledge the [AstroCLIP](https://github.com/PolymathicAI/AstroCLIP) open-source code base, on which this project is substantially built.
 
 ---
 
