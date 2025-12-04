@@ -1,5 +1,5 @@
 """
-Functions for LAMOST LRS stellar parameter estimation
+Functions for LAMOST LRS 
 """
 import os
 import torch

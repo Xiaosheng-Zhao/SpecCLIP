@@ -1,5 +1,5 @@
 """
-Functions for Gaia XP stellar parameter estimation
+Functions for Gaia XP 
 """
 import os
 import torch

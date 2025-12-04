@@ -1173,8 +1173,6 @@ def get_default_model_paths():
         # Two specclip models for different use cases
         'specclip_predrecon_path': '/work/zxs/model/pretrained_models/specclip_model_predrecon_mlp.ckpt',
         'specclip_split_path': '/work/zxs/model/pretrained_models/specclip_model_split_mlp.ckpt',
-        # Legacy key for backward compatibility
-        'model_path': '/work/zxs/model/pretrained_models/specclip_model_predrecon_mlp.ckpt',
         # Note: h5_data_path is now downloaded separately using get_default_test_data_path()
     }
 
