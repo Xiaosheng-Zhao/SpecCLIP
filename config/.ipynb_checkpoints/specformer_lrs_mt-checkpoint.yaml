@@ -55,7 +55,7 @@ model:
 data:
   class_path: SpectrumDataloader
   init_args:
-    path: "{SPECCLIP_ROOT}/data/desi_edr_split.h5"
+    path: "{SPECCLIP_ROOT}/data/lamost_spectra_subsample_100.h5"
     batch_size: 64
     num_workers: 32
 optimizer:

@@ -1,6 +1,33 @@
+# =============================================================================
+# Data loader classes for SINGLE-modal pretraining: SpectrumDataloader
+#
+# Example .h5 data structure: 
+# Group: /test
+# Dataset: /test/spectra
+#   Shape: (100, 1462, 1) or (100, 343, 1), for lamost lrs and gaia xp, respectively
+# Group: /train
+# Dataset: /train/spectra
+#   Shape: (100, 1462, 1) or (100, 343, 1), for lamost lrs and gaia xp, respectively
+#
+# Data loader classes for CROSS-modal SpecCLIP training: SpecClipDataloader
+#
+# Example .h5 data structure: 
+# Group: /test
+# Dataset: /test/gaia_spectra
+#   Shape: (1024, 343, 1)
+# Dataset: /test/lamost_spectra
+#   Shape: (1024, 1462, 1)
+
+# Group: /train
+# Dataset: /train/gaia_spectra
+#   Shape: (1024, 343, 1)
+# Dataset: /train/lamost_spectra
+#   Shape: (1024, 1462, 1)
+#
 # This implementation is adapted from the AstroCLIP framework
 # (Parker et al. 2024), with modifications specific to SpecCLIP.
 # Original AstroCLIP code: https://github.com/PolymathicAI/AstroCLIP
+# =============================================================================
 
 from typing import Callable, Dict, List, Optional
 import lightning as L
@@ -49,7 +76,7 @@ class SpectrumDataloader(L.LightningDataModule):
         collate_fn: Optional[Callable[[Dict[str, Tensor]], Dict[str, Tensor]]] = None,
     ) -> None:
         """
-        Simplified DataLoader for spectroscopic data.
+        DataLoader for single-modality spectroscopic data.
         
         Args:
             path: Path to the HDF5 file containing spectral data
@@ -130,7 +157,7 @@ class SpecClipDataloader(L.LightningDataModule):
         collate_fn: Optional[Callable[[Dict[str, Tensor]], Dict[str, Tensor]]] = None,
     ) -> None:
         """
-        DataLoader handling spectroscopic data from Gaia and LAMOST surveys.
+        DataLoader handling spectroscopic data from Gaia and LAMOST surveys to train SpecCLIP.
         
         Args:
             path: Path to the HDF5 file containing spectral data
