@@ -6,11 +6,8 @@
 # to learn a shared latent representations across modalities.
 # 
 # It uses modality-specific pre-trained encoders:
-#   • Gaia XP encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
-#   • LAMOST LRS encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
-#
-# Portions of this implementation are adapted from AstroCLIP
-# (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
+#   • Gaia XP encoder: masked-transformer (MT, self-attention + mask modeling) objective
+#   • LAMOST LRS encoder: masked-transformer (MT, self-attention + mask modeling) objective
 # =============================================================================
 
 import os
@@ -43,9 +40,12 @@ class SpecClipModel(L.LightningModule):
         learnable_logit_scale: bool = False,
     ):
         """
-        The SpecCLIP-base (mt) model that takes two types of spectra (Gaia XP and LAMOST LRS) and embeds them
-        into a common space using CLIP loss.
-        Note that you must provide the Gaia XP and LAMOST LRS encoders, both trained with masked transformer, to be used for the embedding.
+        The SpecCLIP-base model that takes an Gaia and a LAMOST LRS spectrum and embeds them into a common space using CLIP loss.
+        Note that you must provide the Gaia and LAMOST LRS encoders to be used for the embedding.
+
+        This implementation is adapted from the SpecFormer module in the 
+        AstroCLIP codebase (https://github.com/PolymathicAI/AstroCLIP), 
+        which is MIT-licensed.
 
         Args:
             gaia_xp_encoder (nn.Module): The Gaia XP encoder to be used for embedding.

@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# Adapted from AstroCLIP (Parker et al. 2024).
-# Original code available at: https://github.com/PolymathicAI/AstroCLIP
-
 import os
 os.environ.setdefault("WANDB_MODE", "online")
 import time
@@ -25,7 +21,6 @@ from specclip import format_with_env
 from specclip.callbacks import CustomSaveConfigCallback, CustomEarlyStopping  
 
 #wandb.init(mode="disabled")
-
 
 class WrappedLightningCLI(LightningCLI):
     def before_instantiate_classes(self) -> None:

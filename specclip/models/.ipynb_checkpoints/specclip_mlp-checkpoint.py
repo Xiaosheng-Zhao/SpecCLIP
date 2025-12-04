@@ -1,5 +1,5 @@
 # =============================================================================
-# SpecCLIP-mlp Pretraining Module
+# SpecCLIP-mlp Pretraining Modules
 # 
 # The SpecCLIP-mlp model contains only:
 #   • contrastive loss,
@@ -7,10 +7,7 @@
 # 
 # It uses modality-specific pre-trained encoders:
 #   • Gaia XP encoder: ordinary auto-encoders (OAE)-style reconstruction
-#   • LAMOST LRS encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
-#
-# Portions of this implementation are adapted from AstroCLIP
-# (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
+#   • LAMOST LRS encoder: masked-transformer (MT, self-attention + mask modeling) objective
 # =============================================================================
 
 import os
@@ -46,6 +43,10 @@ class SpecClipModel_mlp(L.LightningModule):
         The SpecCLIP-base model that takes an Gaia and a LAMOST LRS spectrum and embeds them into a common space using CLIP loss.
         Note that you must provide the Gaia and LAMOST LRS encoders to be used for the embedding.
 
+        This implementation is adapted from the SpecFormer module in the 
+        AstroCLIP codebase (https://github.com/PolymathicAI/AstroCLIP), 
+        which is MIT-licensed.
+
         Args:
             gaia_xp_encoder (nn.Module): The Gaia XP encoder to be used for embedding.
             lamost_lrs_encoder (nn.Module): The LAMOST LRS encoder to be used for embedding.
@@ -60,7 +61,7 @@ class SpecClipModel_mlp(L.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        # Define the Gaia and LAMOST LRS encoder
+        # Define the Gaia XP and LAMOST LRS encoder
         self.gaia_xp_encoder = gaia_xp_encoder
         self.lamost_lrs_encoder = lamost_lrs_encoder
 

@@ -9,10 +9,7 @@
 # 
 # It uses modality-specific pre-trained encoders:
 #   • Gaia XP encoder: ordinary auto-encoders (OAE)-style reconstruction
-#   • LAMOST LRS encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
-#
-# Portions of this implementation are adapted from AstroCLIP
-# (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
+#   • LAMOST LRS encoder: masked-transformer (MT, self-attention + mask modeling) objective
 # =============================================================================
 
 import os

@@ -1,7 +1,3 @@
-# This implementation is adapted from the AstroCLIP framework
-# (Parker et al. 2024), with additional modules and modifications specific to SpecCLIP.
-# Original AstroCLIP code: https://github.com/PolymathicAI/AstroCLIP
-
 from typing import Any, Dict, Optional,Union
 import matplotlib.pyplot as plt
 import wandb

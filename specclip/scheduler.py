@@ -1,6 +1,3 @@
-# Adapted from AstroCLIP (Parker et al. 2024).
-# Original code available at: https://github.com/PolymathicAI/AstroCLIP
-
 import math
 
 import torch
@@ -9,6 +6,9 @@ from torch.optim.lr_scheduler import LRScheduler
 
 class CosineAnnealingWithWarmupLR(LRScheduler):
     """A cosine-annealing learning rate scheduler with initial warmup.
+
+    This implementation is adapted from the AstroCLIP codebase
+    (https://github.com/PolymathicAI/AstroCLIP), which is MIT-licensed.
 
     Currently this cuts off after one cycle. The interface is otherwise compatible with
     :class:`~torch.optim.lr_scheduler.CosineAnnealingLR`.

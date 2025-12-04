@@ -1,13 +1,12 @@
 # =============================================================================
 # SpecCLIP Modality-Specific Pretraining Module
 # 
-# This script defines the core classes used for pretraining Gaia XP and 
-# LAMOST LRS encoders with:
-#   • masked-transformer (MT, basically self-attention + mask modeling) objective.
+# This script defines the core classes used for pretraining Gaia XP and LAMOST LRS encoders
+# with:
+#   • masked-transformer (MT, self-attention + mask modeling) objective, adapted from the SpecFormer 
+#     implementation in the AstroCLIP codebase 
+#     (https://github.com/PolymathicAI/AstroCLIP)
 #   • ordinary auto-encoders (OAE)-style reconstruction
-#   
-# Portions of this implementation are adapted from AstroCLIP
-# (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
 # =============================================================================
 
 import math
@@ -52,7 +51,6 @@ class MLPBlock(nn.Module):
         else:
             return self.mlp(self.norm(x))
 
-# Gaia XP pretrained model, using the ordinary auto-encoder (OAE) model
 class SpectralMLPAutoencoder_xp(L.LightningModule):
     def __init__(
         self,
@@ -69,6 +67,9 @@ class SpectralMLPAutoencoder_xp(L.LightningModule):
         dropout: float = 0.1,            # Dropout rate
         mask_num_chunks: int = 6,        # Number of chunks to mask
     ):
+        """
+        Gaia XP pretrained model, using the ordinary auto-encoder (OAE) model
+        """
         super().__init__()
         self.save_hyperparameters()
 
@@ -320,7 +321,6 @@ class SpectralMLPAutoencoder_xp(L.LightningModule):
         except Exception as e:
             print(f"Error in validation_epoch_end: {str(e)}")
 
-# LAMOST LRS pretrained model, using the masked transformer (MT) model
 class SpecFormerControl20_wstd(L.LightningModule):
     def __init__(
         self,
@@ -336,6 +336,13 @@ class SpecFormerControl20_wstd(L.LightningModule):
         dropout: float = 0.1,
         norm_first: bool = False,
     ):
+        """
+        LAMOST LRS pretrained model using a masked-transformer architecture.
+
+        This implementation is adapted from the SpecFormer module in the 
+        AstroCLIP codebase (https://github.com/PolymathicAI/AstroCLIP), 
+        which is MIT-licensed. Some preprocessing components have been modified.
+        """
         super().__init__()
         self.save_hyperparameters()
 
@@ -535,7 +542,6 @@ class SpecFormerControl20_wstd(L.LightningModule):
 
         return masked_seq
 
-# Gaia XP pretrained model, using the masked transformer (MT) model
 class SpecFormerControl1_stats(L.LightningModule):
     def __init__(
         self,
@@ -553,6 +559,13 @@ class SpecFormerControl1_stats(L.LightningModule):
         conv_dim: int = 18,
         include_stats: bool = False,  
     ):
+        """
+        Gaia XP pretrained model, using the masked-transformer (MT) architecture.
+
+        This implementation is adapted from the SpecFormer module in the 
+        AstroCLIP codebase (https://github.com/PolymathicAI/AstroCLIP), 
+        which is MIT-licensed. The tokenization (point-wise tokenization) have been modified.
+        """
         super().__init__()
         self.save_hyperparameters()
         
@@ -579,7 +592,6 @@ class SpecFormerControl1_stats(L.LightningModule):
             ]
         )
         self.final_layernorm = LayerNorm(embed_dim, bias=True)
-        self.conv_head = nn.Linear(embed_dim, conv_dim+2, bias=True)
 
         self.head = nn.Linear(embed_dim, effective_input_dim, bias=True)
 
@@ -755,7 +767,6 @@ class SpecFormerControl1_stats(L.LightningModule):
 
         return masked_seq
 
-# LAMOST LRS pretrained model, using the ordinary auto-encoder (OAE) model
 class SpectralMLPAutoencoder(L.LightningModule):
     def __init__(
         self,
@@ -772,6 +783,9 @@ class SpectralMLPAutoencoder(L.LightningModule):
         dropout: float = 0.1,            # Dropout rate
         mask_num_chunks: int = 6,        # Number of chunks to mask
     ):
+        """
+        LAMOST LRS pretrained model, using the ordinary auto-encoder (OAE) model
+        """
         super().__init__()
         self.save_hyperparameters()
         

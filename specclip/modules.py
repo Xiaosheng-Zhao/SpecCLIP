@@ -1,7 +1,3 @@
-# This implementation is adapted from the AstroCLIP framework
-# (Parker et al. 2024), with additional modules and modifications specific to SpecCLIP.
-# Original AstroCLIP code: https://github.com/PolymathicAI/AstroCLIP
-
 import math
 import numbers
 from typing import Callable, Optional, Tuple, Union
@@ -318,6 +314,9 @@ class TransformerBlock(nn.Module):
 class CrossAttentionHead(nn.Module):
     """Cross-attention head with dropout.
 
+    This implementation is adapted from the AstroCLIP codebase
+    (https://github.com/PolymathicAI/AstroCLIP), which is MIT-licensed.
+
     This module is a single head of a cross-attention layer. It takes a query and a key
     tensor, computes the attention weights, and returns the weighted sum of the values
     tensor. The attention weights are also returned.
@@ -365,6 +364,9 @@ class CrossAttentionHead(nn.Module):
 
 class MLP(nn.Module):
     """A two-layer MLP.
+
+    This implementation is adapted from the AstroCLIP codebase
+    (https://github.com/PolymathicAI/AstroCLIP), which is MIT-licensed.
 
     This uses a fully-connected layer to encode the input, then applies a non-linearity,
     then uses another fully-connected layer to decode back to the initial dimension, and
@@ -414,6 +416,9 @@ class MLP(nn.Module):
 class LayerNorm(nn.Module):
     """Layer normalized with optional bias.
 
+    This implementation is adapted from the AstroCLIP codebase
+    (https://github.com/PolymathicAI/AstroCLIP), which is MIT-licensed.
+
     This is based on PyTorch's :class:`~torch.nn.LayerNorm` module but is needed because
     PyTorch's version does not support disabling the bias.
 
@@ -455,51 +460,6 @@ class LayerNorm(nn.Module):
     def forward(self, input):
         return F.layer_norm(
             input, self.normalized_shape, self.weight, self.bias, self.eps
-        )
-
-
-class TiedLinear(nn.Module):
-    """A dense linear layer whose parameters are tied to a tensor provided by the user.
-
-    Using this layer is equivalent to using the functional form,
-    :func:`~torch.nn.functional.linear`. The utility of having a module is that it will
-    show up in module summaries, which can help to make the structure of the model more
-    transparent.
-
-    :param weight: weight tensor
-    :param bias: bias tensor; if not provided, there will be no bias
-    """
-
-    in_features: int
-    """size of each input sample."""
-
-    out_features: int
-    """size of each output sample."""
-
-    def __init__(
-        self,
-        weight: Union[torch.Tensor, nn.Parameter],
-        bias: Union[None, torch.Tensor, nn.Parameter],
-    ):
-        super().__init__()
-
-        if weight.ndim != 2:
-            raise ValueError(
-                f"weight parameter has {weight.ndim} dimensions, should have 2"
-            )
-        self.out_features, self.in_features = weight.shape
-
-        self.register_buffer("weight", weight)
-        self.register_buffer("bias", bias)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.linear(x, self.weight, self.bias)
-
-    def extra_repr(self) -> str:
-        return (
-            f"in_features={self.in_features}, "
-            f"out_features={self.out_features}, "
-            f"bias={self.bias is not None}"
         )
 
 
