@@ -1,5 +1,5 @@
 # This implementation is adapted from the AstroCLIP framework
-# (Parker et al. 2024), with modifications specific to SpecCLIP.
+# (Parker et al. 2024), with additional modules and modifications specific to SpecCLIP.
 # Original AstroCLIP code: https://github.com/PolymathicAI/AstroCLIP
 
 from typing import Any, Dict, Optional,Union

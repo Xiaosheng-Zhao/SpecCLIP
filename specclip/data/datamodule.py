@@ -1,5 +1,6 @@
 # =============================================================================
-# Data loader classes for SINGLE-modal pretraining: SpectrumDataloader
+# This script contains two data loaders used during training:
+# 1) Data loader classes for SINGLE-modal pretraining: SpectrumDataloader
 #
 # Example .h5 data structure: 
 # Group: /test
@@ -9,7 +10,7 @@
 # Dataset: /train/spectra
 #   Shape: (100, 1462, 1) or (100, 343, 1), for lamost lrs and gaia xp, respectively
 #
-# Data loader classes for CROSS-modal SpecCLIP training: SpecClipDataloader
+# 2) Data loader classes for CROSS-modal SpecCLIP training: SpecClipDataloader
 #
 # Example .h5 data structure: 
 # Group: /test
