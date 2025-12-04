@@ -85,10 +85,7 @@ from huggingface_hub import login
 
 # Set the path of LOCAL_MODEL_DIR in download_and_setup.py and download model/test data
 !python download_and_setup.py 
-```
-### Parameter Prediction
-
-*Coming soon in v1.1.0.*  
+``` 
 
 ### Spectral Translation
 
@@ -148,6 +145,9 @@ retriever.plot_retrieval_results(
 )
 
 ```
+### Parameter Prediction
+
+*Coming soon in v1.1.0.* 
 
 ---
 
