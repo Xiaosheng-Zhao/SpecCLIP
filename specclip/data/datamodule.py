@@ -24,10 +24,6 @@
 #   Shape: (1024, 343, 1)
 # Dataset: /train/lamost_spectra
 #   Shape: (1024, 1462, 1)
-#
-# This implementation is adapted from the AstroCLIP framework
-# (Parker et al. 2024), with modifications specific to SpecCLIP.
-# Original AstroCLIP code: https://github.com/PolymathicAI/AstroCLIP
 # =============================================================================
 
 from typing import Callable, Dict, List, Optional
