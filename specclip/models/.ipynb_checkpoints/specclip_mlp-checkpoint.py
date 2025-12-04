@@ -10,7 +10,7 @@
 #   • LAMOST LRS encoder: masked-transformer objective
 #
 # Portions of this implementation are adapted from AstroCLIP
-# (Liam et al. 2024): https://github.com/waqarsyed/astroclip
+# (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
 # =============================================================================
 
 import os

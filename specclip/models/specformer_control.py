@@ -7,7 +7,7 @@
 #   • ordinary OAE-style reconstruction
 #
 # Portions of this implementation are adapted from AstroCLIP
-# (Liam et al. 2024): https://github.com/PolymathicAI/AstroCLIP
+# (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
 # =============================================================================
 
 import math
