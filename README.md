@@ -70,7 +70,7 @@ Refer to the `scripts/` directory to train different model variants. Before runn
 SPECCLIP_ROOT="/path/to/your/specclip"
 WANDB_ENTITY_NAME="your_wandb_entity"
 ```
-put the data in `{SPECCLIP_ROOT}/data`, and update the data file name into `config` files.
+put the data in `{SPECCLIP_ROOT}/data`, and update the data file name in `config` files.
 
 ---
 
