@@ -64,13 +64,13 @@ pip install -e .
 | `SpecCLIP-split` | Gaia XP  ⟷ LAMOST contrastive+(pred+recon-split)    | 768           |126M| [🤗 Hugging Face](https://huggingface.co/astroshawn/SpecCLIP/blob/main/specclip/specclip_model_split_mlp.ckpt) |[config](./config/specclip_split_lrs_mt_xp_oae.yaml) |
 
 **Examples of training with your own data:**  
-Refer to the `scripts/` directory. Before running any training script, create a `.env` file inside the `specclip/` folder and include:
+Refer to the `scripts/` directory to train different model variants. Before running any training script, create a `.env` file inside the `specclip/` folder and include:
 
 ```bash
 SPECCLIP_ROOT="/path/to/your/specclip"
 WANDB_ENTITY_NAME="your_wandb_entity"
 ```
-put the data in `{SPECCLIP_ROOT}/data`, and update the data file name into `config`.
+put the data in `{SPECCLIP_ROOT}/data`, and update the data file name into `config` files.
 
 ---
 
