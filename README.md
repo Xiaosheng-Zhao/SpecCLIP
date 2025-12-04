@@ -145,9 +145,6 @@ retriever.plot_retrieval_results(
 )
 
 ```
-### Parameter Prediction
-
-*Coming soon in v1.1.0.* 
 
 ---
 
