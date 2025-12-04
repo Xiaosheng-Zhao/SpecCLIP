@@ -70,6 +70,7 @@ Refer to the `scripts/` directory. Before running any training script, create a 
 SPECCLIP_ROOT="/path/to/your/specclip"
 WANDB_ENTITY_NAME="your_wandb_entity"
 ```
+put the data in `{SPECCLIP_ROOT}/data`, and update the data file name into `config`.
 
 ---
 
