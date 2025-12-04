@@ -87,29 +87,7 @@ from huggingface_hub import login
 ```
 ### Parameter Prediction
 
-Predict stellar parameters from any input spectrum:
-```python
-import json
-from stellar_params_unified import UnifiedStellarParameterPredictor
-from IPython.display import display
-
-# Configuration
-with open('config_lrs.json', 'r') as f:
-    lrs_config = json.load(f)
-predictor_lrs = UnifiedStellarParameterPredictor(survey_type='LAMOST_LRS', lrs_config=lrs_config)
-
-# Predict All Parameters from LAMOST LRS
-results_lrs_all = predictor_lrs.predict(
-    './test_data/lrs/sample1_matrix.fits',
-    parameter_types=['all'],
-    simple_header=False,
-    display_format='row'
-)
-
-# Display
-display(predictor_lrs.display_results(results_lrs_all, style='formatted'))
-
-```
+*Coming soon in v1.1.0.*  
 
 ### Spectral Translation
 
