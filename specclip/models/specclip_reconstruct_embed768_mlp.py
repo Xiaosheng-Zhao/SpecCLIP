@@ -8,8 +8,8 @@
 # to learn a shared latent representation across modalities.
 # 
 # It uses modality-specific pre-trained encoders:
-#   • Gaia XP encoder: ordinary OAE-style reconstruction
-#   • LAMOST LRS encoder: masked-transformer objective
+#   • Gaia XP encoder: ordinary auto-encoders (OAE)-style reconstruction
+#   • LAMOST LRS encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
 #
 # Portions of this implementation are adapted from AstroCLIP
 # (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
@@ -49,7 +49,8 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
         
     ):
         """
-        The SpecCLIP model that takes Gaia XP and LAMOST LRS spectra and embeds them into a common space using CLIP loss.
+        The SpecCLIP-pr model that takes Gaia XP and LAMOST LRS spectra and embeds them into a common space using CLIP loss, 
+        together with additional decoders for reconstruction and cross-modal predictions with a unified embedding.
         Note that you must provide the Gaia XP and LAMOST LRS encoders to be used for the embedding.
 
         Args:
@@ -106,9 +107,6 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
         # The normalized lamost spectra
         std, mean = lamost_spectra.std(1, keepdim=True), lamost_spectra.mean(1, keepdim=True)
         lamost_spectra_normalized = (lamost_spectra - mean) / std
-        #print ('norm2')
-
-        #print(f"im shape: {im.shape}, sp shape: {sp.shape}")  # Debugging line
 
         # Get the Gaia XP and LAMOST LRS features
         gaia_xp_features = self.gaia_xp_encoder(gaia_spectra)
@@ -122,7 +120,7 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
             gaia_xp_features, lamost_lrs_features, self.hparams.logit_scale
         )
         print ("self.hparams.add_reconstruct_loss",self.hparams.add_reconstruct_loss,"self.hparams.add_predict_loss",self.hparams.add_predict_loss)
-        # Add another loss to reconstruct the Gaia XP and LAMOST LRS spectra, respectively: from their features
+        # Loss to reconstruct the Gaia XP and LAMOST LRS spectra, respectively: from their features
         if self.hparams.add_reconstruct_loss:
             gaia_xp_reconstruct = self.gaia_xp_decoder(gaia_xp_features)
             lamost_lrs_reconstruct = self.lamost_lrs_decoder(lamost_lrs_features)
@@ -137,8 +135,6 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
 
         # Log the losses
         self.log("train_loss_withlogit", loss_withlogit)
-        #self.log("train_loss_nologit", loss_nologit)
-        #self.log("scale", self.logit_scale)
         if self.hparams.add_reconstruct_loss:
             self.log("train_loss_reconstruct", loss_reconstruct)
         if self.hparams.add_predict_loss:
@@ -158,8 +154,6 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
         return loss
 
     def training_epoch_end(self, outputs):
-        #avg_train_loss = torch.stack([x['training_loss'] for x in outputs]).mean()
-        #print (outputs)
         if outputs:
             # Determine if the first element is a dictionary or a tensor
             if isinstance(outputs[0], dict):
@@ -178,7 +172,6 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
         else:
             print("No valid outputs received in training_epoch_end")
 
-        #avg_train_loss = torch.stack(outputs).mean()
         self.log('training_loss', avg_train_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def validation_step(self, batch, batch_idx):
@@ -187,9 +180,6 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
         # The normalized lamost spectra
         std, mean = lamost_spectra.std(1, keepdim=True), lamost_spectra.mean(1, keepdim=True)
         lamost_spectra_normalized = (lamost_spectra - mean) / std
-        #print ('norm')
-
-        #print(f"val im shape: {im.shape}, va; sp shape: {sp.shape}")  # Debugging line
 
         # Get the Gaia XP and LAMOST LRS features
         gaia_xp_features = self.gaia_xp_encoder(gaia_spectra)
@@ -203,8 +193,7 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
             gaia_xp_features, lamost_lrs_features, self.hparams.temperature
         )
 
-        # Do the similar thing as the training_step to incorporate the other two losses
-        # Add another loss to reconstruct the Gaia XP and LAMOST LRS spectra, respectively: from their features
+        # Loss to reconstruct the Gaia XP and LAMOST LRS spectra, respectively: from their features
         if self.hparams.add_reconstruct_loss:
             gaia_xp_reconstruct = self.gaia_xp_decoder(gaia_xp_features)
             lamost_lrs_reconstruct = self.lamost_lrs_decoder(lamost_lrs_features)
@@ -218,8 +207,6 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
 
         # Log the losses
         self.log("train_loss_withlogit", val_loss_withlogit)
-        #self.log("train_loss_nologit", loss_nologit)
-        #self.log("scale", self.logit_scale)
         if self.hparams.add_reconstruct_loss:
             self.log("train_loss_reconstruct", loss_reconstruct)
         if self.hparams.add_predict_loss:
@@ -235,8 +222,6 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
         else:
             val_loss = val_loss_withlogit
 
-        # Log the losses
-        #self.log("val_loss_nologit", val_loss_nologit)
         self.log("val_loss_withlogit", val_loss)
 
         return val_loss
@@ -513,7 +498,7 @@ class GaiaXPHeadWithMLP(nn.Module):
         self,
         model_path: str,
         embed_dim: int = 768,
-        n_head: int = 4,  # Kept for parameter compatibility
+        n_head: int = 4, 
         model_embed_dim: int = 768,
         dropout: float = 0.1,
         freeze_backbone: bool = True,
@@ -526,7 +511,7 @@ class GaiaXPHeadWithMLP(nn.Module):
         Args:
             model_path (str): Path to the checkpoint of the SpecFormer model.
             embed_dim (int): Dimension of the embedding.
-            n_head (int): Kept for parameter compatibility (not used).
+            n_head (int): (not used).
             model_embed_dim (int): Dimension of the model embedding.
             dropout (float): Dropout rate for MLP layers.
             freeze_backbone (bool): Whether to freeze the backbone of the model.
@@ -548,8 +533,8 @@ class GaiaXPHeadWithMLP(nn.Module):
         # Initial projection
         self.projection = nn.Linear(model_embed_dim, embed_dim)
         
-        # Feature transformation with precisely calculated parameter count
-        intermediate_dim = 1160  # Carefully selected to match parameter count
+        # Feature transformation 
+        intermediate_dim = 1160  
         self.feature_mlp = nn.Sequential(
             nn.Linear(embed_dim, intermediate_dim),
             nn.LayerNorm(intermediate_dim),
@@ -559,7 +544,7 @@ class GaiaXPHeadWithMLP(nn.Module):
             nn.Dropout(dropout)
         )
         
-        # Main MLP - same as original
+        # Main MLP 
         self.mlp = MLP(
             in_features=embed_dim,
             hidden_features=4 * embed_dim,

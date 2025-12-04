@@ -6,8 +6,8 @@
 # to learn a shared latent representations across modalities.
 # 
 # It uses modality-specific pre-trained encoders:
-#   • Gaia XP encoder: masked-transformer objective
-#   • LAMOST LRS encoder: masked-transformer objective
+#   • Gaia XP encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
+#   • LAMOST LRS encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
 #
 # Portions of this implementation are adapted from AstroCLIP
 # (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
@@ -43,9 +43,9 @@ class SpecClipModel(L.LightningModule):
         learnable_logit_scale: bool = False,
     ):
         """
-        The SpecCLIP model that takes two types of spectra (Gaia XP and LAMOST LRS) and embeds them
+        The SpecCLIP-base (mt) model that takes two types of spectra (Gaia XP and LAMOST LRS) and embeds them
         into a common space using CLIP loss.
-        Note that you must provide the Gaia XP and LAMOST LRS encoders to be used for the embedding.
+        Note that you must provide the Gaia XP and LAMOST LRS encoders, both trained with masked transformer, to be used for the embedding.
 
         Args:
             gaia_xp_encoder (nn.Module): The Gaia XP encoder to be used for embedding.
@@ -115,8 +115,6 @@ class SpecClipModel(L.LightningModule):
 
         # Log the losses
         self.log("train_loss_withlogit", loss_withlogit)
-        #self.log("train_loss_nologit", loss_nologit)
-        #self.log("scale", self.logit_scale)
 
         # Return the loss
         return loss_withlogit
@@ -159,7 +157,6 @@ class SpecClipModel(L.LightningModule):
         )
 
         # Log the losses
-        #self.log("val_loss_nologit", val_loss_nologit)
         self.log("val_loss_withlogit", val_loss_withlogit)
 
         return val_loss_withlogit

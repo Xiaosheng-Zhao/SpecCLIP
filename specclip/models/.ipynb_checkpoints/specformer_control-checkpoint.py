@@ -3,9 +3,9 @@
 # 
 # This script defines the core classes used for pretraining Gaia XP and 
 # LAMOST LRS encoders with:
-#   • masked-transformer objectives,
-#   • ordinary OAE-style reconstruction
-#
+#   • masked-transformer (MT, basically self-attention + mask modeling) objective.
+#   • ordinary auto-encoders (OAE)-style reconstruction
+#   
 # Portions of this implementation are adapted from AstroCLIP
 # (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
 # =============================================================================
@@ -164,61 +164,13 @@ class SpectralMLPAutoencoder_xp(L.LightningModule):
         mean_token = mean  # [batch_size, 1]
 
         # Concatenate std token with normalized spectrum
-        x_with_std = torch.cat([mean_token, std_token, x_normalized], dim=1)  # [batch_size, seq_len+1]
+        x_with_std = torch.cat([mean_token, std_token, x_normalized], dim=1)  # [batch_size, seq_len+2]
 
         return x_with_std
 
     def mask_sequence(self, x: Tensor) -> Tensor:
-        """
-        Apply random masking to the sequence if masking is enabled
-        
-        Args:
-            x: Input tensor with std token of shape [batch_size, seq_len+1]
-            
-        Returns:
-            Masked tensor of same shape (std token is never masked)
-        """
-        if not self.hparams.use_masking:
-            return x
-
-        # Apply masking, but preserve the std token (first position)
-        batch_size, seq_len = x.shape
-        masked_x = x.clone()
-
-        # Skip the std token (first position) for masking
-        spectrum_only = masked_x[:, 2:]
-
-        # Use either num_chunks approach or ratio-based approach
-        if self.hparams.mask_num_chunks > 0:
-            # Similar to original code - fixed number of chunks
-            for i in range(batch_size):
-                for _ in range(self.hparams.mask_num_chunks):
-                    # Find a valid start position (exclude the first token)
-                    spectrum_len = seq_len - 1
-                    chunk_width = min(self.hparams.mask_chunk_width, spectrum_len)
-
-                    # Ensure we don't start a chunk that would go past the end
-                    if spectrum_len <= chunk_width:
-                        continue
-
-                    start_pos = torch.randint(0, spectrum_len - chunk_width, (1,)).item()
-                    # +1 in the position to account for the std token
-                    masked_x[i, start_pos+1:start_pos+1+chunk_width] = 0
-        else:
-            # Ratio-based approach (alternative implementation)
-            chunk_width = self.hparams.mask_chunk_width
-            spectrum_len = seq_len - 1  # Excluding std token
-            num_chunks = max(1, int(spectrum_len * self.hparams.mask_ratio / chunk_width))
-
-            for i in range(batch_size):
-                for _ in range(num_chunks):
-                    if spectrum_len <= chunk_width:
-                        continue
-                    start_pos = torch.randint(0, spectrum_len - chunk_width, (1,)).item()
-                    # +1 in the position to account for the std token
-                    masked_x[i, start_pos+1:start_pos+1+chunk_width] = 0
-
-        return masked_x
+        """Masking disabled — placeholder method."""
+        return x
 
     def forward(self, x: Tensor) -> Dict[str, Tensor]:
         """Forward pass through the model"""
@@ -290,7 +242,7 @@ class SpectralMLPAutoencoder_xp(L.LightningModule):
         # Get spectra from batch
         spectra = batch["spectra"]
 
-        # Preprocess - adds std token
+        # Preprocess - adds mean and std token
         input_data = self.preprocess(spectra)
         target = input_data.clone()
 
@@ -378,7 +330,7 @@ class SpecFormerControl20_wstd(L.LightningModule):
         num_heads: int,
         max_len: int = 400,
         mask_num_chunks: int = 6,
-        mask_chunk_width: int = 20, #50
+        mask_chunk_width: int = 20, 
         slice_section_length: int = 20,
         slice_overlap: int = 10,
         dropout: float = 0.1,
@@ -568,7 +520,7 @@ class SpecFormerControl20_wstd(L.LightningModule):
         len_ = seq.shape[0]
         num_chunks = self.hparams.mask_num_chunks
         chunk_width = self.hparams.mask_chunk_width
-        #print ('*************************************',len_)
+
         # Ensure there's enough space for the chunks and separations
         total_width_needed = num_chunks * chunk_width + (num_chunks - 1) * chunk_width
         if total_width_needed > len_:
@@ -599,7 +551,7 @@ class SpecFormerControl1_stats(L.LightningModule):
         dropout: float = 0.1,
         norm_first: bool = False,
         conv_dim: int = 18,
-        include_stats: bool = False,  # New parameter to control stats inclusion
+        include_stats: bool = False,  
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -609,9 +561,6 @@ class SpecFormerControl1_stats(L.LightningModule):
         
         # Define effective input dimension based on stats inclusion
         effective_input_dim = input_dim + 2 if include_stats else input_dim
-
-        # define a one-dimension convolution
-        self.conv1d = nn.Conv1d(input_dim, conv_dim, kernel_size=5, padding=2)
         
         # Adjust data embedding dimension based on stats inclusion
         self.data_embed = nn.Linear(effective_input_dim, embed_dim)
@@ -632,7 +581,6 @@ class SpecFormerControl1_stats(L.LightningModule):
         self.final_layernorm = LayerNorm(embed_dim, bias=True)
         self.conv_head = nn.Linear(embed_dim, conv_dim+2, bias=True)
 
-        # Adjust head output dimension based on stats inclusion
         self.head = nn.Linear(embed_dim, effective_input_dim, bias=True)
 
         self._reset_parameters_datapt()
@@ -672,7 +620,7 @@ class SpecFormerControl1_stats(L.LightningModule):
         x_normalized = (x - mean) / std
         
         if self.include_stats:
-            # Original preprocessing with stats
+            # Preprocessing with stats
             x = F.pad(x_normalized, pad=(2, 0, 1, 0), mode="constant", value=0)
             x[:, 0, 0] = mean.squeeze() #torch.log10(mean.squeeze())
             x[:, 0, 1] = std.squeeze() #torch.log10(std.squeeze())
@@ -792,7 +740,7 @@ class SpecFormerControl1_stats(L.LightningModule):
         len_ = seq.shape[0]
         num_chunks = self.hparams.mask_num_chunks
         chunk_width = self.hparams.mask_chunk_width
-        #print (len_)
+
         # Ensure there's enough space for the chunks and separations
         total_width_needed = num_chunks * chunk_width + (num_chunks - 1) * chunk_width
         if total_width_needed > len_:
@@ -944,7 +892,6 @@ class SpectralMLPAutoencoder(L.LightningModule):
         
         # Use either num_chunks approach or ratio-based approach
         if self.hparams.mask_num_chunks > 0:
-            # Similar to original code - fixed number of chunks
             for i in range(batch_size):
                 for _ in range(self.hparams.mask_num_chunks):
                     # Find a valid start position (exclude the first token)

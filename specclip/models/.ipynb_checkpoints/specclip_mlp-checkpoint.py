@@ -6,8 +6,8 @@
 # to learn a shared latent representations across modalities.
 # 
 # It uses modality-specific pre-trained encoders:
-#   • Gaia XP encoder: ordinary OAE-style reconstruction
-#   • LAMOST LRS encoder: masked-transformer objective
+#   • Gaia XP encoder: ordinary auto-encoders (OAE)-style reconstruction
+#   • LAMOST LRS encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
 #
 # Portions of this implementation are adapted from AstroCLIP
 # (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
@@ -43,8 +43,8 @@ class SpecClipModel_mlp(L.LightningModule):
         learnable_logit_scale: bool = False,
     ):
         """
-        The SpecCLIP model that takes an image and a spectrum and embeds them into a common space using CLIP loss.
-        Note that you must provide the image and LAMOST LRS encoders to be used for the embedding.
+        The SpecCLIP-base model that takes an Gaia and a LAMOST LRS spectrum and embeds them into a common space using CLIP loss.
+        Note that you must provide the Gaia and LAMOST LRS encoders to be used for the embedding.
 
         Args:
             gaia_xp_encoder (nn.Module): The Gaia XP encoder to be used for embedding.
@@ -60,7 +60,7 @@ class SpecClipModel_mlp(L.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        # Define the image and LAMOST LRS encoder
+        # Define the Gaia and LAMOST LRS encoder
         self.gaia_xp_encoder = gaia_xp_encoder
         self.lamost_lrs_encoder = lamost_lrs_encoder
 
@@ -104,15 +104,11 @@ class SpecClipModel_mlp(L.LightningModule):
 
         # Log the losses
         self.log("train_loss_withlogit", loss_withlogit)
-        #self.log("train_loss_nologit", loss_nologit)
-        #self.log("scale", self.logit_scale)
 
         # Return the loss
         return loss_withlogit
 
     def training_epoch_end(self, outputs):
-        #avg_train_loss = torch.stack([x['training_loss'] for x in outputs]).mean()
-        #print (outputs)
         if outputs:
             # Determine if the first element is a dictionary or a tensor
             if isinstance(outputs[0], dict):
@@ -132,7 +128,6 @@ class SpecClipModel_mlp(L.LightningModule):
         else:
             print("No valid outputs received in training_epoch_end")
 
-        #avg_train_loss = torch.stack(outputs).mean()
         self.log('training_loss', avg_train_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def validation_step(self, batch, batch_idx):
@@ -151,7 +146,6 @@ class SpecClipModel_mlp(L.LightningModule):
         )
 
         # Log the losses
-        #self.log("val_loss_nologit", val_loss_nologit)
         self.log("val_loss_withlogit", val_loss_withlogit)
 
         return val_loss_withlogit
@@ -198,7 +192,7 @@ class CLIPLoss(nn.Module):
         logit_scale: float,
         output_dict: bool = False,
     ) -> torch.FloatTensor:
-        # Get the logits for the image and spectrum features
+        # Get the logits for the Gaia and LAMOST LRS features
         logits_per_gaia_xp, logits_per_lamost_lrs = self.get_logits(
             gaia_xp_features, lamost_lrs_features, logit_scale
         )
@@ -287,7 +281,7 @@ class GaiaXPHeadWithMLP(nn.Module):
         self,
         model_path: str,
         embed_dim: int = 768,
-        n_head: int = 4,  # Kept for parameter compatibility
+        n_head: int = 4,  
         model_embed_dim: int = 768,
         dropout: float = 0.1,
         freeze_backbone: bool = True,
@@ -300,7 +294,7 @@ class GaiaXPHeadWithMLP(nn.Module):
         Args:
             model_path (str): Path to the checkpoint of the SpecFormer model.
             embed_dim (int): Dimension of the embedding.
-            n_head (int): Kept for parameter compatibility (not used).
+            n_head (int): (not used).
             model_embed_dim (int): Dimension of the model embedding.
             dropout (float): Dropout rate for MLP layers.
             freeze_backbone (bool): Whether to freeze the backbone of the model.
@@ -322,7 +316,7 @@ class GaiaXPHeadWithMLP(nn.Module):
         # Initial projection
         self.projection = nn.Linear(model_embed_dim, embed_dim)
         
-        # Feature transformation with precisely calculated parameter count
+        # Feature transformation 
         intermediate_dim = 1160 
         self.feature_mlp = nn.Sequential(
             nn.Linear(embed_dim, intermediate_dim),
@@ -369,7 +363,7 @@ class LamostLRSHeadWithMLP(nn.Module):
         self,
         model_path: str,
         embed_dim: int = 768,
-        n_head: int = 4,  # Kept for parameter compatibility
+        n_head: int = 4,  
         model_embed_dim: int = 768,
         dropout: float = 0.1,
         freeze_backbone: bool = True,
@@ -382,7 +376,7 @@ class LamostLRSHeadWithMLP(nn.Module):
         Args:
             model_path (str): Path to the checkpoint of the SpecFormer model.
             embed_dim (int): Dimension of the embedding.
-            n_head (int): Kept for parameter compatibility (not used).
+            n_head (int): (not used).
             model_embed_dim (int): Dimension of the model embedding.
             dropout (float): Dropout rate for MLP layers.
             freeze_backbone (bool): Whether to freeze the backbone of the model.
@@ -404,7 +398,7 @@ class LamostLRSHeadWithMLP(nn.Module):
         # Initial projection
         self.projection = nn.Linear(model_embed_dim, embed_dim)
         
-        # Feature transformation with precisely calculated parameter count
+        # Feature transformation 
         intermediate_dim = 1160 
         self.feature_mlp = nn.Sequential(
             nn.Linear(embed_dim, intermediate_dim),
@@ -426,8 +420,7 @@ class LamostLRSHeadWithMLP(nn.Module):
         self, x: torch.tensor, y: torch.tensor = None, return_weights: bool = False
     ):
         with torch.set_grad_enabled(not self.freeze_backbone):
-            #embedding = self.backbone(x)["latent"]
-            embedding = torch.mean(self.backbone(x)["embedding"], -2)
+            embedding = self.backbone(x)["latent"]
 
         # Project to target dimension
         x = self.projection(embedding)

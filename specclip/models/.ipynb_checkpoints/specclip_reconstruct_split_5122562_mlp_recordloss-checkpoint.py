@@ -8,8 +8,8 @@
 # to learn split (shared+non-shared) latent representations across modalities.
 # 
 # It uses modality-specific pre-trained encoders:
-#   • Gaia XP encoder: ordinary OAE-style reconstruction
-#   • LAMOST LRS encoder: masked-transformer objective
+#   • Gaia XP encoder: ordinary auto-encoders (OAE)-style reconstruction
+#   • LAMOST LRS encoder: masked-transformer (MT, basically self-attention + mask modeling) objective
 #
 # Portions of this implementation are adapted from AstroCLIP
 # (Parker et al. 2024): https://github.com/PolymathicAI/AstroCLIP
@@ -46,6 +46,24 @@ class SpecClipModel_reconstruct_split_5122562_mlp_recordloss(L.LightningModule):
         reconstruction_weight: float = 0.5,
         cross_modal_weight: float = 0.5,
     ):
+        """
+        The SpecCLIP-split model that takes Gaia XP and LAMOST LRS spectra and embeds them into a common space using CLIP loss, 
+        together with additional decoders for reconstruction and cross-modal predictions with a splitted (shared+non-shared) embedding.
+        Note that you must provide the Gaia XP and LAMOST LRS encoders to be used for the embedding.
+
+        Args:
+            gaia_xp_encoder (nn.Module): The Gaia XP encoder to be used for embedding.
+            lamost_lrs_encoder (nn.Module): The LAMOST LRS encoder to be used for embedding.
+            temperature (float): The temperature parameter for the CLIP loss.
+            lr (float): The learning rate for the optimizer.
+            weight_decay (float): The weight decay for the optimizer.
+            epochs (int): The number of epochs for training.
+            eta_min (float): The minimum learning rate for the scheduler.
+            logit_scale (float): The logit scale for the CLIP loss.
+            learnable_logit_scale (bool): Whether the logit scale should be learnable.
+            reconstruction_weight (float): Weight for reconstruction loss.
+            cross_modal_weight (float): Weight for cross-modal prediction loss.
+        """
         super().__init__()
         self.save_hyperparameters()
 
@@ -88,7 +106,6 @@ class SpecClipModel_reconstruct_split_5122562_mlp_recordloss(L.LightningModule):
         # The normalized lamost spectra
         std, mean = lamost_spectra.std(1, keepdim=True), lamost_spectra.mean(1, keepdim=True)
         lamost_spectra_normalized = (lamost_spectra - mean) / std
-        #print ('norm2')
 
         # Get embeddings from both encoders
         gaia_shared, gaia_private = self.gaia_xp_encoder(gaia_spectra)
@@ -281,9 +298,6 @@ class SpecClipModel_reconstruct_split_5122562_mlp_recordloss(L.LightningModule):
             
         if include_private:
             return shared, private
-        # finish the function
-        #return shared.reconstruction_weight * recon_loss +
-        #    self.hparams.cross_modal_weight * cross_modal_loss
 
 # reconstruction loss
 class ReconstructionLoss(nn.Module):
@@ -381,25 +395,6 @@ class GaiaXPDecoder(nn.Module):
         combined = torch.cat([shared_proj, private_proj], dim=-1)
         reconstruction = self.final_layer(combined)
         return reconstruction
-
-class CrossModalDecoder_back(nn.Module):
-    """Decoder for cross-modal prediction using only shared representations"""
-    def __init__(
-        self,
-        shared_dim: int = 768,
-        out_features: int = None  # Set based on target modality
-    ):
-        super().__init__()
-        self.decoder = nn.Sequential(
-            nn.Linear(shared_dim, shared_dim * 4),
-            nn.ReLU(),
-            nn.Linear(shared_dim * 4, shared_dim * 2),
-            nn.ReLU(),
-            nn.Linear(shared_dim * 2, out_features)
-        )
-
-    def forward(self, shared_features: torch.Tensor):
-        return self.decoder(shared_features)
     
 class CrossModalDecoder(nn.Module):
     """Decoder for cross-modal prediction using only shared representations"""
@@ -456,28 +451,6 @@ class CrossModalDecoder(nn.Module):
     
     def forward(self, shared_features: torch.Tensor):
         return self.decoder(shared_features)
-
-class ReconstructionLoss_back(nn.Module):
-    def __init__(self, alpha: float = 0.7):
-        """
-        Combined reconstruction loss with L1 and cosine similarity components
-        Args:
-            alpha: Weight for L1 loss vs cosine similarity loss
-        """
-        super().__init__()
-        self.alpha = alpha
-
-    def forward(self, pred: torch.Tensor, target: torch.Tensor):
-        # L1 loss for point-wise accuracy
-        l1_loss = F.l1_loss(pred, target)
-        
-        # Cosine similarity loss for spectral shape
-        pred_norm = F.normalize(pred, p=2, dim=-1)
-        target_norm = F.normalize(target, p=2, dim=-1)
-        cosine_loss = 1 - F.cosine_similarity(pred_norm, target_norm, dim=-1).mean()
-        
-        # Combine losses
-        return self.alpha * l1_loss + (1 - self.alpha) * cosine_loss
 
 class CLIPLoss(nn.Module):
     def get_logits(
@@ -616,7 +589,7 @@ class GaiaXPHead_split(nn.Module):
 
         # Initial projection
         self.shared_projection = nn.Linear(model_embed_dim, shared_embed_dim)
-        # Feature transformation with precisely calculated parameter count
+        # Feature transformation 
         shared_intermediate_dim = 1160
         self.shared_feature_mlp = nn.Sequential(
             nn.Linear(shared_embed_dim, shared_intermediate_dim),
