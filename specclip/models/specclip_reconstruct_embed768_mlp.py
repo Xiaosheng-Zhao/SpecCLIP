@@ -43,13 +43,12 @@ class SpecClipModel_reconstruct_embed768_mlp(L.LightningModule):
         eta_min: float = 5e-7,
         logit_scale: float = 15.5,
         learnable_logit_scale: bool = False,
-        # add parameter to control the loss: if add the reconstruction loss and predict loss
         add_reconstruct_loss: bool = True,
         add_predict_loss: bool = True,
         
     ):
         """
-        The SpecCLIP-pr model that takes Gaia XP and LAMOST LRS spectra and embeds them into a common space using CLIP loss, 
+        The SpecCLIP-pr (prediction+reconstruction) model that takes Gaia XP and LAMOST LRS spectra and embeds them into a common space using CLIP loss, 
         together with additional decoders for reconstruction and cross-modal predictions with a unified embedding.
         Note that you must provide the Gaia XP and LAMOST LRS encoders to be used for the embedding.
 

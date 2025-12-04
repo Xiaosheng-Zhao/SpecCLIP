@@ -315,8 +315,6 @@ class TransformerBlock(nn.Module):
             return x, attn_weights
         return x
     
-#EnhancedWavelengthAttention = FlexibleAttention
-    
 class CrossAttentionHead(nn.Module):
     """Cross-attention head with dropout.
 
