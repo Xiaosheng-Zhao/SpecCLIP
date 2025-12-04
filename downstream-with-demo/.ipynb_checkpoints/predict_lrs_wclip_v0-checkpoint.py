@@ -38,12 +38,6 @@ from pytorch_lightning.utilities.warnings import PossibleUserWarning
 warnings.filterwarnings('ignore', category=PossibleUserWarning, 
                        message='.*is already saved during checkpointing.*')
 
-# Add constants
-PREDRECON_LRS_PARAMS = ["ebprp", "a_fe", "c_fe", "n_fe", "mg_fe", "o_fe", "al_fe",
-                        "si_fe", "ca_fe", "ti_fe", "mn_fe", "ni_fe", "cr_fe",
-                        "dnu", "nu_max", "mass", "rad", "age", "dpi"]
-SPLIT_LRS_PARAMS = ["teff", "logg", "rv", "fe_h"]
-
 def read_structure_fits(file_path: str) -> Tuple[np.ndarray, np.ndarray]:
     """
     Read LAMOST LRS FITS file in structure format
@@ -185,8 +179,6 @@ def read_matrix_fits(fits_path):
         # Verify wavelength range matches metadata
         wavemin = hdul[1].data['WAVEMIN'][0]
         wavemax = hdul[1].data['WAVEMAX'][0]
-        #print(f"Header wavelength range: {wavemin:.2f} - {wavemax:.2f} Å")
-        #print(f"Computed wavelength range: {wavelength[0]:.2f} - {wavelength[-1]:.2f} Å")
         
         return wavelength, flux
     
@@ -432,12 +424,6 @@ def interpolate_spectrum(wavelength: np.ndarray,
         # Create interpolation function
         f = interp1d(log_wave, flux, kind='linear', bounds_error=True)
         
-        # Create new wavelength grid in log space
-        #new_log_wave = np.linspace(
-        #    np.log10(new_wavelength_range[0]),
-        #    np.log10(new_wavelength_range[1]), 
-        #    num_points
-        #)
         w_start = 3.602 # Starting point accounting for intervals
         w_end = w_start + 1e-4 * 1461
         new_log_wave = np.linspace(w_start, w_end, 1462)

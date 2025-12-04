@@ -37,29 +37,6 @@ from pytorch_lightning.utilities.warnings import PossibleUserWarning
 warnings.filterwarnings('ignore', category=PossibleUserWarning, 
                        message='.*is already saved during checkpointing.*')
 
-# Parameter to model mapping for Gaia XP
-PREDRECON_XP_PARAMS = ["ebprp", "fe_h", "a_fe", "c_fe", "n_fe"]
-SPLIT_XP_PARAMS = ["teff", "logg"]
-
-# Configuration for which embedding type each model was trained with
-SBI_MODEL_TRAINING_INFO_XP = {
-    # MLP models trained with CLIP embeddings
-    'a_fe': 'predrecon_clip',
-    'c_fe': 'predrecon_clip',
-    'n_fe': 'predrecon_clip',
-    'fe_h': 'predrecon_clip',
-    'ebprp': 'predrecon_clip',
-    
-
-    # trained with XP encoder embeddings
-    'fe_h_pretrained': 'xp',
-    
-    # SBI models 
-    # If trained with XP encoder:
-    'teff': 'split_clip',
-    'logg': 'split_clip',
-}
-
 def read_structure_fits(file_path: str) -> Tuple[np.ndarray, np.ndarray]:
     """
     Read LAMOST LRS FITS file in structure format

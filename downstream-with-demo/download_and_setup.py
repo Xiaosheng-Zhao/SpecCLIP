@@ -9,7 +9,7 @@ import sys
 
 # Configuration
 HF_REPO_ID = "astroshawn/SpecCLIP"
-LOCAL_MODEL_DIR = "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new"
+LOCAL_MODEL_DIR = "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models"
 
 def download_all_models(use_snapshot=True, include_test_data=False):
     """
@@ -27,23 +27,47 @@ def download_all_models(use_snapshot=True, include_test_data=False):
 
     if include_test_data:
         print("\n⚠️  Test data will be downloaded (~10 MB)")
-        #print("   This may take several minutes depending on your connection.")
 
-    # Download models (test data comes from separate repo)
-    print("\nDownloading models...")
+    # Download ONLY the models needed for retrieval
+    print("\nDownloading selected models only...")
+
     try:
-        snapshot_download(
+        # Load config.json from HF first
+        config_json_path = hf_hub_download(
             repo_id=HF_REPO_ID,
+            filename="config.json",
             local_dir=LOCAL_MODEL_DIR,
-            local_dir_use_symlinks=False,
-            resume_download=True,
-            max_workers=4,
-            ignore_patterns=["test_data/*"]  # Test data is in separate repo
+            local_dir_use_symlinks=False
         )
-        print(f"\n✓ Models downloaded to: {LOCAL_MODEL_DIR}")
+        with open(config_json_path, "r") as f:
+            config = json.load(f)
+
+        foundation = config["founation_models"]
+
+        # List of required model paths
+        required_files = [
+            foundation['specclip_models']['specclip_model_predrecon_mlp']['path'],
+            #foundation['specclip_models']['specclip_model_split_mlp']['path'],
+            foundation['encoders']['xp_encoder_ae_768']['path'],
+            foundation['encoders']['lrs_encoder']['path'],
+        ]
+
+        for rel_path in required_files:
+            print(f"  → Downloading {rel_path}")
+            hf_hub_download(
+                repo_id=HF_REPO_ID,
+                filename=rel_path,
+                local_dir=LOCAL_MODEL_DIR,
+                local_dir_use_symlinks=False,
+                resume_download=True
+            )
+
+        print(f"\n✓ Selected models downloaded to: {LOCAL_MODEL_DIR}")
+
     except Exception as e:
         print(f"\n✗ Download failed: {e}")
         sys.exit(1)
+
 
     # Download test data from separate dataset repository if requested
     test_data_path = None
@@ -98,7 +122,7 @@ def generate_local_configs(model_dir, test_data_path=None):
     # Configuration for retrieval (uses split model for shared embeddings)
     retrieval_config = {
         'specclip_predrecon_path': str(Path(model_dir) / foundation['specclip_models']['specclip_model_predrecon_mlp']['path']),
-        'specclip_split_path': str(Path(model_dir) / foundation['specclip_models']['specclip_model_split_mlp']['path']),
+        'specclip_split_path': "",
         'xp_encoder_path': str(Path(model_dir) / foundation['encoders']['xp_encoder_ae_768']['path']),
         'lrs_encoder_path': str(Path(model_dir) / foundation['encoders']['lrs_encoder']['path']),
     }
