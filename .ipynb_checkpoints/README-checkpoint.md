@@ -4,7 +4,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2507.01939-b31b1b.svg)](https://arxiv.org/abs/2507.01939)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**A foundation model for cross-survey stellar spectroscopy combining contrastive learning, domain-specific information preservation, and deterministic cross-modal generation**
+**A foundation-like model for cross-survey stellar spectroscopy combining contrastive learning, domain-specific information preservation, and cross-modal prediction**
 
 > **SpecCLIP** aligns low-resolution LAMOST spectra with Gaia XP photometric spectra using CLIP-style contrastive learning while preserving domain-specific information.  
 > It learns a *general-purpose spectral representation* that enables **parameter estimation**, **spectral translation**, and **similarity retrieval** across different spectroscopic surveys.
