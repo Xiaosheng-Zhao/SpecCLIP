@@ -398,7 +398,7 @@ class CrossModalDecoder(nn.Module):
     def __init__(
         self,
         shared_dim: int = 512,
-        out_features: int = None,  # Set based on target modality
+        out_features: int = None,  
         hidden_expansion: int = 4,
     ):
         super().__init__()
@@ -413,17 +413,17 @@ class CrossModalDecoder(nn.Module):
                 nn.BatchNorm1d(mid_dim),
                 nn.Dropout(0.1),
                 
-                nn.Linear(mid_dim, mid_dim), # 2048, 4096
+                nn.Linear(mid_dim, mid_dim), # 2048, 2048
                 nn.GELU(),
                 nn.BatchNorm1d(mid_dim), 
                 nn.Dropout(0.1),
                 
-                nn.Linear(mid_dim, mid_dim), # 4096, 2048
+                nn.Linear(mid_dim, mid_dim), # 2048, 2048
                 nn.GELU(),
                 nn.BatchNorm1d(mid_dim), # 2048
                 nn.Dropout(0.1),
                 
-                nn.Linear(mid_dim, out_features) # 987, 1462
+                nn.Linear(mid_dim, out_features) # 2048, 1462
             )
         else:
             # Path for Gaia XP
@@ -433,12 +433,12 @@ class CrossModalDecoder(nn.Module):
                 nn.BatchNorm1d(mid_dim),
                 nn.Dropout(0.1),
                 
-                nn.Linear(mid_dim, mid_dim//2), # 2048, 
+                nn.Linear(mid_dim, mid_dim//2), # 2048, 1024
                 nn.GELU(),
-                nn.BatchNorm1d(mid_dim//2),
+                nn.BatchNorm1d(mid_dim//2), # 1024
                 nn.Dropout(0.1),
                 
-                nn.Linear(mid_dim//2, mid_dim//4), # 512, 512
+                nn.Linear(mid_dim//2, mid_dim//4), # 1024, 512
                 nn.GELU(),
                 nn.BatchNorm1d(mid_dim//4), # 512,
                 nn.Dropout(0.1),
