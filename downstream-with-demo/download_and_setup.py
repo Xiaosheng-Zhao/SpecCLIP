@@ -9,7 +9,7 @@ import sys
 
 # Configuration
 HF_REPO_ID = "astroshawn/SpecCLIP"
-LOCAL_MODEL_DIR = "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models"
+LOCAL_MODEL_DIR = "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new"
 
 def download_all_models(use_snapshot=True, include_test_data=False):
     """
@@ -27,47 +27,23 @@ def download_all_models(use_snapshot=True, include_test_data=False):
 
     if include_test_data:
         print("\n⚠️  Test data will be downloaded (~10 MB)")
+        #print("   This may take several minutes depending on your connection.")
 
-    # Download ONLY the models needed for retrieval
-    print("\nDownloading selected models only...")
-
+    # Download models (test data comes from separate repo)
+    print("\nDownloading models...")
     try:
-        # Load config.json from HF first
-        config_json_path = hf_hub_download(
+        snapshot_download(
             repo_id=HF_REPO_ID,
-            filename="config.json",
             local_dir=LOCAL_MODEL_DIR,
-            local_dir_use_symlinks=False
+            local_dir_use_symlinks=False,
+            resume_download=True,
+            max_workers=4,
+            ignore_patterns=["test_data/*"]  # Test data is in separate repo
         )
-        with open(config_json_path, "r") as f:
-            config = json.load(f)
-
-        foundation = config["founation_models"]
-
-        # List of required model paths
-        required_files = [
-            foundation['specclip_models']['specclip_model_predrecon_mlp']['path'],
-            #foundation['specclip_models']['specclip_model_split_mlp']['path'],
-            foundation['encoders']['xp_encoder_ae_768']['path'],
-            foundation['encoders']['lrs_encoder']['path'],
-        ]
-
-        for rel_path in required_files:
-            print(f"  → Downloading {rel_path}")
-            hf_hub_download(
-                repo_id=HF_REPO_ID,
-                filename=rel_path,
-                local_dir=LOCAL_MODEL_DIR,
-                local_dir_use_symlinks=False,
-                resume_download=True
-            )
-
-        print(f"\n✓ Selected models downloaded to: {LOCAL_MODEL_DIR}")
-
+        print(f"\n✓ Models downloaded to: {LOCAL_MODEL_DIR}")
     except Exception as e:
         print(f"\n✗ Download failed: {e}")
         sys.exit(1)
-
 
     # Download test data from separate dataset repository if requested
     test_data_path = None
@@ -119,10 +95,66 @@ def generate_local_configs(model_dir, test_data_path=None):
 
     foundation = config['founation_models']
 
+    # Configuration for LAMOST LRS
+    lrs_config = {
+        # Encoders
+        'xp_encoder_path': str(Path(model_dir) / foundation['encoders']['xp_encoder_ae_768']['path']),
+        'lrs_encoder_path': str(Path(model_dir) / foundation['encoders']['lrs_encoder']['path']),
+        # Two specclip models
+        'specclip_predrecon_path': str(Path(model_dir) / foundation['specclip_models']['specclip_model_predrecon_mlp']['path']),
+        'specclip_split_path': str(Path(model_dir) / foundation['specclip_models']['specclip_model_split_mlp']['path']),
+        # Individual SBI models for seismic parameters
+        'sbi_model_path_age': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['age']['path']),
+        'sbi_model_path_nu_max': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['nu_max']['path']),
+        'sbi_model_path_mass': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['mass']['path']),
+        'sbi_model_path_rad': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['rad']['path']),
+        'sbi_model_path_dnu': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['dnu']['path']),
+        'sbi_model_path_rv': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['rv']['path']),
+        'sbi_model_path_dpi1': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['dpi1']['path']),
+        'sbi_model_path_teff': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['teff']['path']),
+        'sbi_model_path_logg': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['sbi']['logg']['path']),
+        # Individual MLP models for chemical abundances
+        'mlp_model_path_feh': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['feh']['path']),
+        'mlp_model_path_ebprp': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['ebprp']['path']),
+        'mlp_model_path_afe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['afe']['path']),
+        'mlp_model_path_cfe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['cfe']['path']),
+        'mlp_model_path_nfe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['nfe']['path']),
+        'mlp_model_path_alfe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['alfe']['path']),
+        'mlp_model_path_mgfe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['mgfe']['path']),
+        'mlp_model_path_mnfe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['mnfe']['path']),
+        'mlp_model_path_nife': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['nife']['path']),
+        'mlp_model_path_ofe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['ofe']['path']),
+        'mlp_model_path_sife': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['sife']['path']),
+        'mlp_model_path_tife': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['tife']['path']),
+        'mlp_model_path_crfe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['crfe']['path']),
+        'mlp_model_path_cafe': str(Path(model_dir) / foundation['parameter_estimation']['lamost_lrs']['mlp']['cafe']['path']),
+        'stats_dir': str(Path(model_dir) / 'stats')
+    }
+
+    # Configuration for Gaia XP
+    xp_config = {
+        # Encoders
+        'xp_encoder_path': str(Path(model_dir) / foundation['encoders']['xp_encoder_ae_768']['path']),
+        'lrs_encoder_path': str(Path(model_dir) / foundation['encoders']['lrs_encoder']['path']),
+        # Two specclip models
+        'specclip_predrecon_path': str(Path(model_dir) / foundation['specclip_models']['specclip_model_predrecon_mlp']['path']),
+        'specclip_split_path': str(Path(model_dir) / foundation['specclip_models']['specclip_model_split_mlp']['path']),
+        # MLP models for Gaia XP parameters
+        'mlp_model_path_afe': str(Path(model_dir) / foundation['parameter_estimation']['gaia_xp']['mlp']['afe']['path']),
+        'mlp_model_path_cfe': str(Path(model_dir) / foundation['parameter_estimation']['gaia_xp']['mlp']['cfe']['path']),
+        'mlp_model_path_nfe': str(Path(model_dir) / foundation['parameter_estimation']['gaia_xp']['mlp']['nfe']['path']),
+        'mlp_model_path_feh': str(Path(model_dir) / foundation['parameter_estimation']['gaia_xp']['mlp']['feh']['path']),
+        'mlp_model_path_ebprp': str(Path(model_dir) / foundation['parameter_estimation']['gaia_xp']['mlp']['ebprp']['path']),
+        # SBI models for teff and logg
+        'sbi_model_path_teff': str(Path(model_dir) / foundation['parameter_estimation']['sbi']['teff']['path']),
+        'sbi_model_path_logg': str(Path(model_dir) / foundation['parameter_estimation']['sbi']['logg']['path']),
+        'stats_dir': str(Path(model_dir) / 'stats')
+    }
+
     # Configuration for retrieval (uses split model for shared embeddings)
     retrieval_config = {
         'specclip_predrecon_path': str(Path(model_dir) / foundation['specclip_models']['specclip_model_predrecon_mlp']['path']),
-        'specclip_split_path': "",
+        'specclip_split_path': str(Path(model_dir) / foundation['specclip_models']['specclip_model_split_mlp']['path']),
         'xp_encoder_path': str(Path(model_dir) / foundation['encoders']['xp_encoder_ae_768']['path']),
         'lrs_encoder_path': str(Path(model_dir) / foundation['encoders']['lrs_encoder']['path']),
     }
@@ -136,11 +168,19 @@ def generate_local_configs(model_dir, test_data_path=None):
             retrieval_config['h5_data_path'] = str(default_test_path)
 
     # Save configurations
+    with open('config_lrs.json', 'w') as f:
+        json.dump(lrs_config, f, indent=2)
+    print("✓ Saved: config_lrs.json")
+
+    with open('config_xp.json', 'w') as f:
+        json.dump(xp_config, f, indent=2)
+    print("✓ Saved: config_xp.json")
+
     with open('config_retrieval.json', 'w') as f:
         json.dump(retrieval_config, f, indent=2)
     print("✓ Saved: config_retrieval.json")
 
-    return retrieval_config
+    return lrs_config, xp_config, retrieval_config
 
 def main():
     """Main setup function"""
@@ -184,7 +224,7 @@ def main():
         test_data_path = result[1] if isinstance(result, tuple) and len(result) > 1 else None
 
         # Generate configs
-        retrieval_config = generate_local_configs(
+        lrs_config, xp_config, retrieval_config = generate_local_configs(
             model_dir,
             test_data_path
         )
@@ -198,6 +238,8 @@ def main():
     else:
         print(f"\nModels directory: {LOCAL_MODEL_DIR}")
         print("\nConfiguration files created:")
+        print("  - config_lrs.json (LAMOST LRS parameters)")
+        print("  - config_xp.json (Gaia XP parameters)")
         print("  - config_retrieval.json (spectral retrieval)")
 
         if args.include_test_data:

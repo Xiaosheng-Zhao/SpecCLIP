@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-no-param",
+  "version": "1.0.0",
   "description": "SpecCLIP: Aligning and Translating Spectroscopic Measurements for Stars",
   "founation_models": {
     "encoders": {
@@ -18,16 +18,11 @@
       "lrs_encoder": {
         "path": "encoders/lrs_encoder.ckpt",
         "description": "LAMOST LRS spectrum encoder (epoch=128)",
-        "input": "LAMOST LRS spectra (4000-5600 \u00c5)",
+        "input": "LAMOST LRS spectra (4000-5600 Å)",
         "architecture": "SpecFormer"
       }
     },
     "specclip_models": {
-      "specclip_model_base": {
-        "path": "specclip/specclip_mlp.ckpt",
-        "description": "SpecClip cross-modal model with unified embeddings, no decoders, xp encoded with mlp (epoch=110)",
-        "architecture": "SpecClipModel_mlp"
-      },
       "specclip_model_predrecon_mlp": {
         "path": "specclip/specclip_model_predrecon_mlp.ckpt",
         "description": "SpecClip cross-modal model with unified embeddings, both decoders, xp encoded with mlp (epoch=110)",
@@ -36,7 +31,201 @@
       "specclip_model_split_mlp": {
         "path": "specclip/specclip_model_split_mlp.ckpt",
         "description": "SpecClip cross-modal model with split embeddings, both decoders, xp encoded with mlp  (epoch=110)",
-        "architecture": "SpecClipModel_reconstruct_split_5122562_mlp_recordloss"
+        "architecture": "SpecClipModel_reconstruct_split"
+      }
+    },
+    "parameter_estimation": {
+      "lamost_lrs": {
+        "sbi": {
+          "age": {
+            "path": "downstream_models/lrs/sbi/age.pkl",
+            "parameters": ["age"],
+            "method": "SBI",
+            "stats": null
+          },
+          "nu_max": {
+            "path": "downstream_models/lrs/sbi/numax.pkl",
+            "parameters": ["nu_max"],
+            "method": "SBI",
+            "stats": null
+          },
+          "mass": {
+            "path": "downstream_models/lrs/sbi/mass.pkl",
+            "parameters": ["mass"],
+            "method": "SBI",
+            "stats": null
+          },
+          "rad": {
+            "path": "downstream_models/lrs/sbi/rad.pkl",
+            "parameters": ["rad"],
+            "method": "SBI",
+            "stats": null
+          },
+          "dnu": {
+            "path": "downstream_models/lrs/sbi/dnu.pkl",
+            "parameters": ["dnu"],
+            "method": "SBI",
+            "stats": null
+          },
+          "rv": {
+            "path": "downstream_models/lrs/sbi/rv.pkl",
+            "parameters": ["rv"],
+            "method": "SBI",
+            "stats": null
+          },
+          "dpi1": {
+            "path": "downstream_models/lrs/sbi/DP.pkl",
+            "parameters": ["dpi"],
+            "method": "SBI",
+            "stats": null
+          },
+          "teff": {
+            "path": "downstream_models/lrs/sbi/teff.pkl",
+            "parameters": ["teff"],
+            "method": "SBI",
+            "stats": null
+          },
+          "logg": {
+            "path": "downstream_models/lrs/sbi/logg.pkl",
+            "parameters": ["logg"],
+            "method": "SBI",
+            "stats": null
+          }
+        },
+        "mlp": {
+          "feh": {
+            "path": "downstream_models/lrs/mlp/feh.pt",
+            "parameters": ["fe_h"],
+            "method": "MLP",
+            "stats": "stats/lrs/feh_mean_std.json"
+          },
+          "ebprp": {
+            "path": "downstream_models/lrs/mlp/ebprp.pt",
+            "parameters": ["e_bp_rp"],
+            "method": "MLP",
+            "stats": "stats/lrs/ebprp_mean_std.json"
+          },
+          "afe": {
+            "path": "downstream_models/lrs/mlp/afe.pt",
+            "parameters": ["a_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/afe_mean_std.json"
+          },
+          "cfe": {
+            "path": "downstream_models/lrs/mlp/cfe.pt",
+            "parameters": ["c_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/cfe_mean_std.json"
+          },
+          "nfe": {
+            "path": "downstream_models/lrs/mlp/nfe.pt",
+            "parameters": ["n_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/nfe_mean_std.json"
+          },
+          "alfe": {
+            "path": "downstream_models/lrs/mlp/alfe.pt",
+            "parameters": ["al_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/alfe_mean_std.json"
+          },
+          "mgfe": {
+            "path": "downstream_models/lrs/mlp/mgfe.pt",
+            "parameters": ["mg_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/mgfe_mean_std.json"
+          },
+          "mnfe": {
+            "path": "downstream_models/lrs/mlp/mnfe.pt",
+            "parameters": ["mn_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/mnfe_mean_std.json"
+          },
+          "nife": {
+            "path": "downstream_models/lrs/mlp/nife.pt",
+            "parameters": ["ni_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/nife_mean_std.json"
+          },
+          "ofe": {
+            "path": "downstream_models/lrs/mlp/ofe.pt",
+            "parameters": ["o_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/ofe_mean_std.json"
+          },
+          "sife": {
+            "path": "downstream_models/lrs/mlp/sife.pt",
+            "parameters": ["si_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/sife_mean_std.json"
+          },
+          "tife": {
+            "path": "downstream_models/lrs/mlp/tife.pt",
+            "parameters": ["ti_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/tife_mean_std.json"
+          },
+          "crfe": {
+            "path": "downstream_models/lrs/mlp/crfe.pt",
+            "parameters": ["cr_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/crfe_mean_std.json"
+          },
+          "cafe": {
+            "path": "downstream_models/lrs/mlp/cafe.pt",
+            "parameters": ["ca_fe"],
+            "method": "MLP",
+            "stats": "stats/lrs/cafe_mean_std.json"
+          }
+        }
+      },
+      "gaia_xp": {
+        "mlp": {
+          "afe": {
+            "path": "downstream_models/xp/mlp/afe.pt",
+            "parameters": ["a_fe"],
+            "method": "MLP",
+            "stats": "stats/xp/afe_mean_std.json"
+          },
+          "cfe": {
+            "path": "downstream_models/xp/mlp/cfe.pt",
+            "parameters": ["c_fe"],
+            "method": "MLP",
+            "stats": "stats/xp/cfe_mean_std.json"
+          },
+          "nfe": {
+            "path": "downstream_models/xp/mlp/nfe.pt",
+            "parameters": ["n_fe"],
+            "method": "MLP",
+            "stats": "stats/xp/nfe_mean_std.json"
+          },
+          "feh": {
+            "path": "downstream_models/xp/mlp/feh.pt",
+            "parameters": ["fe_h"],
+            "method": "MLP",
+            "stats": "stats/xp/FeH_mean_std.json"
+          },
+          "ebprp": {
+            "path": "downstream_models/xp/mlp/ebprp.pt",
+            "parameters": ["e_bp_rp"],
+            "method": "MLP",
+            "stats": "stats/xp/ebprp_mean_std.json"
+          }
+        }
+      },
+      "sbi": {
+        "teff": {
+          "path": "downstream_models/xp/sbi/teff.pkl",
+          "parameters": ["teff"],
+          "method": "SBI",
+          "stats": null
+        },
+        "logg": {
+          "path": "downstream_models/xp/sbi/logg.pkl",
+          "parameters": ["logg"],
+          "method": "SBI",
+          "stats": null
+        }
       }
     },
     "retrieval": {
@@ -48,21 +237,18 @@
     "gaia_lamost_split": {
       "path": "test_data/gaia_lamost_test_only.h5",
       "description": "Test set with paired Gaia XP and LAMOST LRS spectra",
-      "size": "~10 MB",
+      "size": "~500 MB",
       "contents": {
         "test/source_ids": "Gaia source identifiers",
         "test/gaia_spectra": "Gaia XP spectra (N, 343)",
         "test/lamost_spectra": "LAMOST LRS spectra (N, 1462)"
       },
-      "required_for": [
-        "retrieval",
-        "embedding_database"
-      ],
+      "required_for": ["retrieval", "embedding_database"],
       "optional": true
     }
   },
   "wavelength_ranges": {
-    "lamost_lrs": "4000-5600 \u00c5",
+    "lamost_lrs": "4000-5600 Å",
     "gaia_xp": "336-1020 nm"
   },
   "preprocessing": {
