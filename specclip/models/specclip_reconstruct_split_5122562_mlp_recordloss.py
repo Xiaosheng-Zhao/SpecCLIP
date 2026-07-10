@@ -499,10 +499,11 @@ class LamostLRSHead_split(nn.Module):
         dropout: float = 0.1,
         freeze_backbone: bool = True,
         load_pretrained_weights=True,
+        map_location=None,
     ):
         super().__init__()
         # Load the SpecFormer backbone
-        checkpoint = torch.load(model_path)
+        checkpoint = torch.load(model_path, map_location=map_location)
         self.backbone = SpecFormer_lm(**checkpoint["hyper_parameters"])
         if load_pretrained_weights:
             self.backbone.load_state_dict(checkpoint["state_dict"])
@@ -570,10 +571,11 @@ class GaiaXPHead_split(nn.Module):
         dropout: float = 0.1,
         freeze_backbone: bool = True,
         load_pretrained_weights=True,
+        map_location=None,
     ):
         super().__init__()
         # Load the SpecFormer backbone for XP spectra
-        checkpoint = torch.load(model_path)
+        checkpoint = torch.load(model_path, map_location=map_location)
         self.backbone = SpecFormer_xp(**checkpoint["hyper_parameters"])
         if load_pretrained_weights:
             self.backbone.load_state_dict(checkpoint["state_dict"])

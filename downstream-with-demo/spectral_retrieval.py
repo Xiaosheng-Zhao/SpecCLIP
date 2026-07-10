@@ -19,9 +19,38 @@ from typing import Dict, List, Optional, Tuple, Union
 from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib.pyplot as plt
 import warnings
+from contextlib import contextmanager
 
 # Suppress common warnings
 warnings.filterwarnings('ignore', category=UserWarning)
+
+
+@contextmanager
+def _torch_load_weights_only_false():
+    """
+    Temporarily force ``torch.load(..., weights_only=False)`` for trusted
+    local checkpoints.
+
+    PyTorch >= 2.6 changed the default of ``weights_only`` from ``False`` to
+    ``True``. These SpecCLIP checkpoints pickle the encoder-head objects
+    (e.g. ``GaiaXPHeadWithMLP``), which ``weights_only=True`` refuses to
+    unpickle. Loading is done through Lightning's ``load_from_checkpoint``,
+    which does not expose ``weights_only`` across all versions, so we patch
+    ``torch.load`` for the duration of the load instead.
+    """
+    orig_load = torch.load
+
+    def _patched_load(*args, **kwargs):
+        # Force-overwrite (not setdefault): Lightning's pl_load passes
+        # weights_only=True explicitly, so setdefault would be a no-op.
+        kwargs['weights_only'] = False
+        return orig_load(*args, **kwargs)
+
+    torch.load = _patched_load
+    try:
+        yield
+    finally:
+        torch.load = orig_load
 
 from specclip.models.specclip_reconstruct_embed768_mlp import GaiaXPHeadWithMLP as GaiaXPHead
 from specclip.models.specclip_reconstruct_embed768_mlp import LamostLRSHead
@@ -199,12 +228,13 @@ class SpectralRetriever:
         if self.specclip_predrecon_path:
             gaia_xp_encoder, lamost_lrs_encoder = self._initialize_encoders()
 
-            with warnings.catch_warnings():
+            with warnings.catch_warnings(), _torch_load_weights_only_false():
                 warnings.simplefilter("ignore")
                 self.model_predrecon = SpecClipModel.load_from_checkpoint(
                     checkpoint_path=str(self.specclip_predrecon_path),
                     gaia_xp_encoder=gaia_xp_encoder,
                     lamost_lrs_encoder=lamost_lrs_encoder,
+                    map_location=self.device,
                     strict=True
                 )
             self.model_predrecon = self.model_predrecon.to(self.device)
@@ -220,12 +250,13 @@ class SpectralRetriever:
             )
             gaia_xp_encoder_split, lamost_lrs_encoder_split = self._initialize_encoders_split()
 
-            with warnings.catch_warnings():
+            with warnings.catch_warnings(), _torch_load_weights_only_false():
                 warnings.simplefilter("ignore")
                 self.model_split = SpecClipModel_split.load_from_checkpoint(
                     checkpoint_path=str(self.specclip_split_path),
                     gaia_xp_encoder=gaia_xp_encoder_split,
                     lamost_lrs_encoder=lamost_lrs_encoder_split,
+                    map_location=self.device,
                     strict=True
                 )
             self.model_split = self.model_split.to(self.device)
@@ -263,7 +294,8 @@ class SpectralRetriever:
             model_embed_dim=model_embed_dim,
             dropout=dropout,
             freeze_backbone=freeze_backbone,
-            load_pretrained_weights=False
+            load_pretrained_weights=False,
+            map_location=self.device
         )
 
         lamost_lrs_encoder = LamostLRSHead_split(
@@ -274,7 +306,8 @@ class SpectralRetriever:
             model_embed_dim=model_embed_dim,
             dropout=dropout,
             freeze_backbone=freeze_backbone,
-            load_pretrained_weights=False
+            load_pretrained_weights=False,
+            map_location=self.device
         )
 
         return gaia_xp_encoder, lamost_lrs_encoder
@@ -294,16 +327,18 @@ class SpectralRetriever:
             n_head=n_head,
             model_embed_dim=model_embed_dim,
             dropout=dropout,
-            freeze_backbone=freeze_backbone
+            freeze_backbone=freeze_backbone,
+            map_location=self.device
         )
-        
+
         lamost_lrs_encoder = LamostLRSHead(
             model_path=str(self.lrs_encoder_path),
             embed_dim=embed_dim,
             n_head=n_head,
             model_embed_dim=model_embed_dim,
             dropout=dropout,
-            freeze_backbone=freeze_backbone
+            freeze_backbone=freeze_backbone,
+            map_location=self.device
         )
         
         return gaia_xp_encoder, lamost_lrs_encoder
@@ -606,6 +641,43 @@ class SpectralRetriever:
             'source_ids': self.source_ids[top_indices] if self.source_ids is not None else None
         }
     
+    def get_embedding(
+        self,
+        query_spectrum: Union[np.ndarray, Tuple[np.ndarray, np.ndarray], int],
+        query_type: str = 'lamost_spectra'
+    ) -> np.ndarray:
+        """
+        Get the embedding for a query spectrum.
+
+        Args:
+            query_spectrum: Query spectrum (flux array, (wave, flux) tuple, or test index)
+            query_type: 'gaia_spectra' or 'lamost_spectra' (default 'lamost_spectra')
+
+        Returns:
+            Embedding as a 2D numpy array with shape (1, embedding_dim)
+        """
+        # Handle query input (same logic as find_similar_spectra)
+        if isinstance(query_spectrum, int):
+            # Query is an index in test set; use precomputed embeddings if available
+            if self.gaia_embeddings is None or self.lamost_embeddings is None:
+                raise ValueError(
+                    "Embedding database not built. Call build_embedding_database() "
+                    "first when querying by test-set index."
+                )
+            query_idx = query_spectrum
+            if query_type == 'gaia_spectra':
+                query_embedding = self.gaia_embeddings[query_idx:query_idx+1]
+            else:
+                query_embedding = self.lamost_embeddings[query_idx:query_idx+1]
+        else:
+            # External spectrum
+            query_embedding = self.encode_spectrum(query_spectrum, query_type)
+
+        # Ensure embedding is 2D: (1, embedding_dim)
+        query_embedding = self._ensure_2d_embedding(query_embedding)
+
+        return query_embedding
+
     def predict_cross_modal(
         self,
         query_spectrum: Union[np.ndarray, Tuple[np.ndarray, np.ndarray], int],

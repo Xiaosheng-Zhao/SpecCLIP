@@ -3,6 +3,7 @@
 [![Hugging Face](https://img.shields.io/badge/🤗%20Model-SpecCLIP-yellow)](https://huggingface.co/astroshawn/SpecCLIP/)
 [![arXiv](https://img.shields.io/badge/arXiv-2507.01939-b31b1b.svg)](https://arxiv.org/abs/2507.01939)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Xiaosheng-Zhao/SpecCLIP/blob/main/downstream-with-demo/colab_tutorial.ipynb)
 
 **A foundation-like model for cross-survey stellar spectroscopy combining contrastive learning, domain-specific information preservation, and cross-modal prediction**
 
@@ -23,6 +24,18 @@
 ---
 
 ## Quick Start
+
+### Try it in Colab — no install required
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Xiaosheng-Zhao/SpecCLIP/blob/main/downstream-with-demo/colab_tutorial_full.ipynb)
+
+Click the badge to open the tutorial directly in Google Colab — no local setup required. The notebook clones this repo, installs dependencies, downloads the pretrained checkpoints (~4.5 GB), and walks through similar-star retrieval and cross-modal spectrum prediction end-to-end.
+
+What you need:
+- A free Hugging Face account and a [read-access token](https://huggingface.co/settings/tokens) (paste it when prompted in the notebook).
+- A Colab GPU runtime is recommended (`Runtime → Change runtime type → T4 GPU`); CPU also works but is slower for the embedding-build step.
+
+> Prefer to run locally? Follow the **Installation** steps below and open [`downstream-with-demo/demo_download_v0.ipynb`](./downstream-with-demo/demo_download_v0.ipynb) — same content, no `git clone` / `pip install` cells.
 
 ### Installation
 

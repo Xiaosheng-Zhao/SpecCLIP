@@ -9,7 +9,7 @@ import sys
 
 # Configuration
 HF_REPO_ID = "astroshawn/SpecCLIP"
-LOCAL_MODEL_DIR = "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_new"
+LOCAL_MODEL_DIR = "/home/idies/workspace/Temporary/xzhao/scratch/pretrained_models_all"
 
 def download_all_models(use_snapshot=True, include_test_data=False):
     """

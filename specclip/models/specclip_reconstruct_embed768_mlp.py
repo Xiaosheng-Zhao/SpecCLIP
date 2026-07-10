@@ -430,6 +430,7 @@ class LamostLRSHead(nn.Module):
         dropout: float = 0.1,
         freeze_backbone: bool = True,
         load_pretrained_weights=True,
+        map_location=None,
     ):
         """
         Cross-attention spectrum module that takes a spectrum and passes it through a pretrained SpecFormer model and
@@ -445,7 +446,7 @@ class LamostLRSHead(nn.Module):
         """
         super().__init__()
         # Load the model from the checkpoint
-        checkpoint = torch.load(model_path)
+        checkpoint = torch.load(model_path, map_location=map_location)
         self.backbone = SpecFormer_lm(**checkpoint["hyper_parameters"])
         if load_pretrained_weights:
             self.backbone.load_state_dict(checkpoint["state_dict"])
@@ -499,6 +500,7 @@ class GaiaXPHeadWithMLP(nn.Module):
         dropout: float = 0.1,
         freeze_backbone: bool = True,
         load_pretrained_weights=True,
+        map_location=None,
     ):
         """
         MLP-based module that replaces cross-attention with equivalent parameter count MLPs.
@@ -515,7 +517,7 @@ class GaiaXPHeadWithMLP(nn.Module):
         """
         super().__init__()
         # Load the model from the checkpoint
-        checkpoint = torch.load(model_path)
+        checkpoint = torch.load(model_path, map_location=map_location)
         self.backbone = SpecFormer_xp(**checkpoint["hyper_parameters"])
         if load_pretrained_weights:
             self.backbone.load_state_dict(checkpoint["state_dict"])

@@ -12,6 +12,10 @@ specclip.egg-info/SOURCES.txt
 specclip.egg-info/dependency_links.txt
 specclip.egg-info/requires.txt
 specclip.egg-info/top_level.txt
+specclip.egg-info/.ipynb_checkpoints/SOURCES-checkpoint.txt
+specclip.egg-info/.ipynb_checkpoints/dependency_links-checkpoint.txt
+specclip.egg-info/.ipynb_checkpoints/requires-checkpoint.txt
+specclip.egg-info/.ipynb_checkpoints/top_level-checkpoint.txt
 specclip/data/__init__.py
 specclip/data/datamodule.py
 specclip/models/__init__.py

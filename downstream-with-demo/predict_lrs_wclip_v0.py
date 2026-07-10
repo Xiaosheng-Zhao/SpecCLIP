@@ -190,6 +190,73 @@ def read_matrix_fits(fits_path):
         
         return wavelength, flux
     
+def vacuum_to_air(wavelength_vac: np.ndarray) -> np.ndarray:
+    """
+    Convert vacuum wavelengths (Angstrom) to air wavelengths (Angstrom).
+
+    Uses the IAU standard (Morton 1991) conversion. SDSS spectra are on a
+    vacuum wavelength scale, whereas LAMOST (and hence the model's input grid)
+    is on an air scale; without this conversion SDSS lines land ~1.2 pixels
+    too blue on the model grid.
+
+    Args:
+        wavelength_vac: Vacuum wavelength array in Angstroms
+
+    Returns:
+        Air wavelength array in Angstroms
+    """
+    s = 1e4 / wavelength_vac
+    n = (1 + 0.0000834254 + 0.02406147 / (130 - s ** 2)
+         + 0.00015998 / (38.9 - s ** 2))
+    return wavelength_vac / n
+
+def read_sdss_spectrum(file_path: str, to_air: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Read an SDSS optical spectrum (BOSS/eBOSS pipeline `spec-PLATE-MJD-FIBER.fits`).
+
+    These files store the coadded spectrum as a binary table (HDU 'COADD',
+    usually HDU 1) with one row per pixel and columns `flux` and `loglam`
+    (log10 of wavelength in Angstrom, vacuum, observed frame).
+
+    The returned wavelengths are converted from vacuum to air by default so
+    they share the same frame as the LAMOST-trained model's input grid. No
+    rest-frame (velocity) correction is applied.
+
+    Args:
+        file_path: Path to the SDSS FITS file
+        to_air: If True (default), convert vacuum wavelengths to air.
+
+    Returns:
+        wavelength: Wavelength array in Angstroms (linear, strictly increasing)
+        flux: Flux array
+    """
+    with fits.open(file_path) as hdul:
+        # Locate the HDU that holds the coadded spectrum (loglam + flux columns).
+        data = None
+        for hdu in hdul[1:]:
+            cols = getattr(hdu, 'columns', None)
+            if cols is None:
+                continue
+            names_lower = [c.lower() for c in cols.names]
+            if 'loglam' in names_lower and 'flux' in names_lower:
+                data = hdu.data
+                # Map case-insensitively to the actual column names.
+                loglam_col = cols.names[names_lower.index('loglam')]
+                flux_col = cols.names[names_lower.index('flux')]
+                break
+
+        if data is None:
+            raise KeyError("No SDSS spectrum HDU with 'loglam' and 'flux' columns found")
+
+        # Cast to native-endian float64 (SDSS stores big-endian floats).
+        wavelength = 10.0 ** np.asarray(data[loglam_col], dtype=np.float64)  # vacuum
+        flux = np.asarray(data[flux_col], dtype=np.float64)
+
+        if to_air:
+            wavelength = vacuum_to_air(wavelength)
+
+        return wavelength, flux
+
 def read_spectrum(file_path: str) -> Tuple[np.ndarray, np.ndarray]:
     """
     Unified interface for reading spectrum files, automatically determines format
@@ -207,10 +274,16 @@ def read_spectrum(file_path: str) -> Tuple[np.ndarray, np.ndarray]:
                     # Matrix format
                     return read_matrix_fits(file_path)
                 elif len(hdul) > 1 and hasattr(hdul[1], 'data'):
+                    # SDSS optical spectrum format (loglam + flux columns)
+                    cols = getattr(hdul[1], 'columns', None)
+                    if cols is not None:
+                        names_lower = [c.lower() for c in cols.names]
+                        if 'loglam' in names_lower and 'flux' in names_lower:
+                            return read_sdss_spectrum(file_path)
                     if isinstance(hdul[1].data, np.ndarray):
                         # Structure format
                         return read_structure_fits(file_path)
-                    
+
         except Exception as e:
             raise ValueError(f"Cannot read FITS file: {str(e)}")
     elif file_path.endswith('.csv') or file_path.endswith('.txt'):
