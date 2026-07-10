@@ -32,8 +32,7 @@
 Click the badge to open the tutorial directly in Google Colab — no local setup required. The notebook clones this repo, installs dependencies, downloads the pretrained checkpoints (~4.5 GB), and walks through similar-star retrieval and cross-modal spectrum prediction end-to-end.
 
 What you need:
-- A free Hugging Face account and a [read-access token](https://huggingface.co/settings/tokens) (paste it when prompted in the notebook).
-- A Colab GPU runtime is recommended (`Runtime → Change runtime type → T4 GPU`); CPU also works but is slower for the embedding-build step.
+- A GPU runtime is **optional**. A Colab GPU (`Runtime → Change runtime type → T4 GPU`) speeds up the embedding-build step, but the demo runs fine on CPU too — either pick a CPU runtime, or pass `device='cpu'` when constructing the retriever (an optional commented line is included in the notebook).
 
 > Prefer to run locally? Follow the **Installation** steps below and open [`downstream-with-demo/demo_download_v0.ipynb`](./downstream-with-demo/demo_download_v0.ipynb) — same content, no `git clone` / `pip install` cells.
 
